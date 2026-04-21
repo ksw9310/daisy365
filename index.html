@@ -1,1064 +1,1848 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#6B4226">
-<title>카페 도장쿠폰</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
-  background: #F5F0EB;
-  color: #2C1810;
-  max-width: 430px;
-  margin: 0 auto;
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-}
-
-/* ── PIN SCREEN ── */
-.pin-screen {
-  position: fixed; inset: 0;
-  background: linear-gradient(160deg, #6B4226 0%, #3E2010 100%);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  z-index: 999;
-}
-.pin-logo { font-size: 56px; margin-bottom: 12px; }
-.pin-screen h2 { color: white; font-size: 22px; font-weight: 700; }
-.pin-screen p  { color: rgba(255,255,255,0.65); font-size: 14px; margin-top:6px; margin-bottom: 40px; }
-.pin-dots { display: flex; gap: 18px; margin-bottom: 36px; }
-.pin-dot {
-  width: 15px; height: 15px; border-radius: 50%;
-  background: rgba(255,255,255,0.3);
-  transition: background 0.15s;
-}
-.pin-dot.filled { background: white; }
-.pin-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; width: 280px; }
-.pin-btn {
-  height: 76px; border-radius: 50%;
-  background: rgba(255,255,255,0.12); color: white;
-  font-size: 26px; font-weight: 400; border: none; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.1s;
-}
-.pin-btn:active { background: rgba(255,255,255,0.28); }
-.pin-btn.del { font-size: 22px; }
-.pin-btn.empty { background: transparent; cursor: default; pointer-events: none; }
-.pin-error { color: #FFB3A7; font-size: 13px; margin-top: 20px; opacity: 0; transition: opacity 0.2s; }
-.pin-error.show { opacity: 1; }
-
-/* ── APP SHELL ── */
-#app { display: none; }
-.screen { display: none; padding-bottom: 80px; min-height: 100vh; }
-.screen.active { display: block; }
-
-/* ── HEADER ── */
-.header {
-  background: linear-gradient(135deg, #6B4226, #9B6542);
-  color: white; padding: 18px 20px 16px;
-  position: sticky; top: 0; z-index: 50;
-}
-.header h1 { font-size: 20px; font-weight: 800; }
-.header p  { font-size: 13px; opacity: 0.75; margin-top: 3px; }
-
-/* ── TAB BAR ── */
-.tab-bar {
-  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-  width: 100%; max-width: 430px;
-  background: white; border-top: 1px solid #E8DDD4;
-  display: none; z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-.tab-bar { display: flex; }
-.tab-item {
-  flex: 1; padding: 10px 0 8px;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 3px;
-  cursor: pointer; color: #B0A090; font-size: 10px; font-weight: 600;
-  transition: color 0.15s;
-}
-.tab-item.active { color: #6B4226; }
-.tab-icon { font-size: 22px; }
-
-/* ── STAT CARDS ── */
-.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 16px 0; }
-.stat-card {
-  background: white; border-radius: 16px; padding: 16px 14px;
-  box-shadow: 0 2px 8px rgba(107,66,38,0.08);
-}
-.stat-card .value { font-size: 28px; font-weight: 800; color: #6B4226; }
-.stat-card .label { font-size: 11px; color: #999; margin-top: 3px; }
-
-/* ── SECTION TITLE ── */
-.section-title { font-size: 15px; font-weight: 700; padding: 18px 16px 8px; color: #2C1810; }
-
-/* ── CARD ── */
-.card {
-  background: white; border-radius: 18px;
-  padding: 18px 16px; margin: 0 16px 12px;
-  box-shadow: 0 2px 10px rgba(107,66,38,0.07);
-}
-
-/* ── BUTTONS ── */
-.btn {
-  padding: 15px 20px; border-radius: 14px;
-  font-size: 16px; font-weight: 700; cursor: pointer;
-  border: none; width: 100%;
-  transition: transform 0.1s, opacity 0.15s;
-  display: block;
-}
-.btn:active { transform: scale(0.97); opacity: 0.88; }
-.btn-primary   { background: #6B4226; color: white; }
-.btn-secondary { background: #F0E8E0; color: #6B4226; }
-.btn-success   { background: #E6F4EA; color: #2E7D32; }
-.btn-danger    { background: #FFF0EE; color: #D32F2F; }
-.btn + .btn    { margin-top: 9px; }
-
-/* ── INPUT ── */
-.input-group { margin-bottom: 14px; }
-.input-group label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; font-weight: 600; }
-.input-group input,
-.input-group select {
-  width: 100%; padding: 13px 14px;
-  border: 2px solid #E8DDD4; border-radius: 12px;
-  font-size: 16px; outline: none;
-  transition: border-color 0.2s;
-  background: white; color: #2C1810;
-  -webkit-appearance: none; appearance: none;
-}
-.input-group input:focus,
-.input-group select:focus { border-color: #6B4226; }
-
-/* ── CUSTOMER ROW ── */
-.customer-row {
-  display: flex; align-items: center;
-  padding: 14px 16px; background: white;
-  border-bottom: 1px solid #F5EDE6; cursor: pointer;
-  transition: background 0.1s;
-}
-.customer-row:active { background: #FBF6F2; }
-.avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  background: linear-gradient(135deg, #6B4226, #9B6542);
-  color: white; display: flex; align-items: center;
-  justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0;
-}
-.cust-info { flex: 1; margin-left: 12px; }
-.cust-info h3 { font-size: 15px; font-weight: 700; }
-.cust-info p  { font-size: 12px; color: #999; margin-top: 2px; }
-.stamp-badge {
-  background: #F5EDE6; color: #6B4226;
-  font-size: 12px; font-weight: 800;
-  padding: 5px 12px; border-radius: 20px; white-space: nowrap;
-}
-.stamp-badge.full { background: #6B4226; color: white; }
-
-/* ── STAMP GRID ── */
-.stamp-grid { display: grid; gap: 8px; }
-.stamp-dot {
-  aspect-ratio: 1; border-radius: 50%;
-  background: #EDE4DC;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 20px; transition: all 0.25s;
-}
-.stamp-dot.filled { background: #6B4226; }
-
-/* ── PROGRESS BAR ── */
-.progress-bar { height: 7px; background: #E8DDD4; border-radius: 6px; overflow: hidden; margin: 8px 0; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #6B4226, #C4945A); border-radius: 6px; transition: width 0.5s ease; }
-
-/* ── OVERLAY / MODAL ── */
-.overlay {
-  position: fixed; inset: 0;
-  background: rgba(30,15,5,0.55); z-index: 200;
-  display: none; align-items: flex-end; justify-content: center;
-}
-.overlay.show { display: flex; }
-.modal {
-  background: white; border-radius: 26px 26px 0 0;
-  padding: 22px 20px 32px; width: 100%; max-width: 430px;
-  max-height: 90vh; overflow-y: auto;
-}
-.modal-header {
-  display: flex; align-items: center;
-  justify-content: space-between; margin-bottom: 20px;
-}
-.modal-title { font-size: 20px; font-weight: 800; }
-.close-btn { font-size: 24px; color: #BBB; cursor: pointer; background: none; border: none; line-height: 1; }
-.modal-handle {
-  width: 40px; height: 4px; background: #E0D4C8;
-  border-radius: 4px; margin: 0 auto 18px;
-}
-
-/* ── MENU ITEM ── */
-.menu-item {
-  display: flex; align-items: center;
-  padding: 14px 16px; background: white;
-  border-bottom: 1px solid #F5EDE6;
-}
-.menu-item .m-name  { flex: 1; font-size: 15px; font-weight: 600; }
-.menu-item .m-price { font-size: 15px; font-weight: 800; color: #6B4226; }
-.menu-item .m-btns  { display: flex; gap: 6px; margin-left: 12px; }
-.icon-btn { background: none; border: none; cursor: pointer; font-size: 18px; padding: 4px; }
-
-/* ── SETTINGS ── */
-.settings-block { background: white; border-radius: 16px; margin: 0 16px 14px; overflow: hidden; }
-.settings-row {
-  display: flex; align-items: center;
-  padding: 15px 16px; cursor: pointer;
-  border-bottom: 1px solid #F5EDE6;
-  transition: background 0.1s;
-}
-.settings-row:last-child { border-bottom: none; }
-.settings-row:active { background: #FBF6F2; }
-.settings-row .s-icon { font-size: 22px; margin-right: 14px; }
-.settings-row .s-text { flex: 1; }
-.settings-row .s-text h3 { font-size: 15px; font-weight: 600; }
-.settings-row .s-text p  { font-size: 12px; color: #999; margin-top: 2px; }
-.settings-row .s-arrow { color: #CCC; font-size: 18px; }
-
-/* ── SEARCH BAR ── */
-.search-wrap {
-  padding: 10px 16px; position: sticky; top: 60px;
-  background: #F5F0EB; z-index: 40;
-}
-.search-input {
-  width: 100%; padding: 11px 14px 11px 40px;
-  border: 2px solid #E8DDD4; border-radius: 14px;
-  font-size: 15px; outline: none; background: white;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23BBB' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: 13px center;
-}
-.search-input:focus { border-color: #6B4226; }
-
-/* ── FAB ── */
-.fab {
-  position: fixed; bottom: 86px; right: calc(50% - 215px + 20px);
-  width: 56px; height: 56px; border-radius: 50%;
-  background: #6B4226; color: white; font-size: 30px;
-  border: none; box-shadow: 0 4px 18px rgba(107,66,38,0.45);
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  z-index: 90; transition: transform 0.15s;
-}
-@media (max-width: 430px) {
-  .fab { right: 20px; }
-}
-.fab:active { transform: scale(0.92); }
-
-/* ── PILL ── */
-.pill {
-  display: inline-block; padding: 3px 10px;
-  border-radius: 20px; font-size: 11px; font-weight: 700;
-  background: #F0E8E0; color: #6B4226; margin: 2px;
-}
-
-/* ── COUPON ALERT ── */
-.coupon-alert {
-  background: linear-gradient(135deg, #FFF8E1, #FFF3CD);
-  border: 2px solid #FFD54F; border-radius: 16px;
-  padding: 14px 16px; margin-bottom: 16px; text-align: center;
-}
-.coupon-alert .ca-title { font-size: 16px; font-weight: 800; color: #795548; }
-.coupon-alert .ca-sub   { font-size: 12px; color: #888; margin-top: 4px; }
-
-/* ── EMPTY STATE ── */
-.empty-state { text-align: center; padding: 64px 20px; color: #BBB; }
-.empty-state .es-icon { font-size: 52px; margin-bottom: 14px; }
-.empty-state p { font-size: 15px; line-height: 1.5; }
-
-/* ── TOAST ── */
-.toast {
-  position: fixed; bottom: 88px; left: 50%; transform: translateX(-50%);
-  background: rgba(30,15,5,0.88); color: white;
-  padding: 11px 22px; border-radius: 24px;
-  font-size: 14px; z-index: 400; opacity: 0;
-  transition: opacity 0.25s; pointer-events: none;
-  white-space: nowrap; font-weight: 500;
-}
-.toast.show { opacity: 1; }
-
-/* ── ACTIVITY ROW ── */
-.act-row {
-  display: flex; align-items: center;
-  padding: 12px 16px; background: white;
-  border-bottom: 1px solid #F5EDE6;
-}
-.act-row .act-icon {
-  width: 38px; height: 38px; border-radius: 50%;
-  background: #F0E8E0; display: flex; align-items: center;
-  justify-content: center; font-size: 18px; flex-shrink: 0;
-}
-.act-row.coupon .act-icon { background: #FFF8E1; }
-.act-row .act-info { flex: 1; margin-left: 12px; }
-.act-row .act-info h4 { font-size: 14px; font-weight: 600; }
-.act-row .act-info p  { font-size: 12px; color: #999; margin-top: 2px; }
-.act-row .act-time { font-size: 12px; color: #CCC; }
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60%  { transform: translateX(-10px); }
-  40%, 80%  { transform: translateX(10px); }
-}
-.shake { animation: shake 0.4s; }
-</style>
-</head>
-<body>
-
-<!-- ════════════ PIN SCREEN ════════════ -->
-<div class="pin-screen" id="pinScreen">
-  <div class="pin-logo">☕</div>
-  <h2 id="pinCafeName">내 카페</h2>
-  <p>사장님 비밀번호 4자리</p>
-  <div class="pin-dots" id="pinDots">
-    <div class="pin-dot" id="pd0"></div>
-    <div class="pin-dot" id="pd1"></div>
-    <div class="pin-dot" id="pd2"></div>
-    <div class="pin-dot" id="pd3"></div>
-  </div>
-  <div class="pin-pad" id="pinPad">
-    <button class="pin-btn" onclick="pinInput('1')">1</button>
-    <button class="pin-btn" onclick="pinInput('2')">2</button>
-    <button class="pin-btn" onclick="pinInput('3')">3</button>
-    <button class="pin-btn" onclick="pinInput('4')">4</button>
-    <button class="pin-btn" onclick="pinInput('5')">5</button>
-    <button class="pin-btn" onclick="pinInput('6')">6</button>
-    <button class="pin-btn" onclick="pinInput('7')">7</button>
-    <button class="pin-btn" onclick="pinInput('8')">8</button>
-    <button class="pin-btn" onclick="pinInput('9')">9</button>
-    <button class="pin-btn empty"></button>
-    <button class="pin-btn" onclick="pinInput('0')">0</button>
-    <button class="pin-btn del" onclick="pinDelete()">⌫</button>
-  </div>
-  <div class="pin-error" id="pinError">비밀번호가 틀렸어요</div>
-</div>
-
-<!-- ════════════ APP ════════════ -->
-<div id="app">
-
-  <!-- ── 홈 탭 ── -->
-  <div class="screen active" id="screen-home">
-    <div class="header">
-      <h1 id="homeTitle">☕ 내 카페</h1>
-      <p id="homeDate">-</p>
-    </div>
-
-    <div class="stat-row">
-      <div class="stat-card"><div class="value" id="statToday">0</div><div class="label">오늘 방문</div></div>
-      <div class="stat-card"><div class="value" id="statTotal">0</div><div class="label">전체 손님</div></div>
-      <div class="stat-card"><div class="value" id="statCoupons">0</div><div class="label">쿠폰 교환</div></div>
-      <div class="stat-card"><div class="value" id="statStamps">0</div><div class="label">누적 도장</div></div>
-    </div>
-
-    <div class="section-title">☕ 도장 찍기</div>
-    <div class="card">
-      <div class="input-group" style="margin-bottom:10px">
-        <label>손님 이름 또는 전화번호 뒷 4자리</label>
-        <input type="text" id="quickInput" placeholder="예: 홍길동 / 5678"
-          onkeydown="if(event.key==='Enter')quickStamp()">
-      </div>
-      <button class="btn btn-primary" onclick="quickStamp()">☕ 도장 찍기</button>
-      <button class="btn btn-secondary" onclick="openNewCustomer()">+ 새 손님 등록</button>
-    </div>
-
-    <div class="section-title">📋 최근 내역</div>
-    <div style="background:white; border-radius:18px; margin:0 16px; overflow:hidden; box-shadow:0 2px 10px rgba(107,66,38,0.07)">
-      <div id="recentList"></div>
-    </div>
-  </div>
-
-  <!-- ── 손님 탭 ── -->
-  <div class="screen" id="screen-customers">
-    <div class="header">
-      <h1>손님 목록</h1>
-      <p id="custCount">전체 0명</p>
-    </div>
-    <div class="search-wrap">
-      <input class="search-input" type="text" id="custSearch"
-        placeholder="이름 또는 전화번호 검색..." oninput="renderCustomers()">
-    </div>
-    <div style="background:white; border-radius:18px; margin:0 16px; overflow:hidden; box-shadow:0 2px 10px rgba(107,66,38,0.07)">
-      <div id="custList"></div>
-    </div>
-  </div>
-
-  <!-- ── 설정 탭 ── -->
-  <div class="screen" id="screen-settings">
-    <div class="header">
-      <h1>설정</h1>
-      <p>카페 운영 설정</p>
-    </div>
-
-    <div class="section-title">카페 정보</div>
-    <div class="settings-block">
-      <div class="settings-row" onclick="editSetting('cafeName')">
-        <span class="s-icon">☕</span>
-        <div class="s-text"><h3>카페 이름</h3><p id="sCafeName">-</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="editSetting('stampsRequired')">
-        <span class="s-icon">🎯</span>
-        <div class="s-text"><h3>쿠폰 완성 도장 수</h3><p id="sStamps">-</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="editSetting('reward')">
-        <span class="s-icon">🎁</span>
-        <div class="s-text"><h3>쿠폰 보상 내용</h3><p id="sReward">-</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="editSetting('password')">
-        <span class="s-icon">🔐</span>
-        <div class="s-text"><h3>비밀번호 변경</h3><p>사장님 모드 잠금 번호</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-    </div>
-
-    <div class="section-title">QR 손님 등록</div>
-    <div class="settings-block">
-      <div class="settings-row" onclick="editSetting('ownerPhone')">
-        <span class="s-icon">📱</span>
-        <div class="s-text"><h3>사장님 전화번호</h3><p id="sOwnerPhone">문자 수신용 (예: 01012345678)</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="editSetting('registerUrl')">
-        <span class="s-icon">🔗</span>
-        <div class="s-text"><h3>등록 페이지 URL</h3><p id="sRegisterUrl">Vercel 배포 후 주소 입력</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-    </div>
-    <div class="card" id="qrCard" style="display:none;text-align:center;">
-      <div style="font-size:14px;font-weight:700;color:#6B4226;margin-bottom:12px;">📷 손님용 QR 코드</div>
-      <div id="qrCanvas" style="display:flex;justify-content:center;margin-bottom:12px;"></div>
-      <div style="font-size:11px;color:#999;line-height:1.6;">카운터에 출력하거나 화면을 보여주세요<br>손님이 스캔하면 등록 페이지가 열려요</div>
-      <button class="btn btn-secondary" style="margin-top:12px;" onclick="refreshQR()">QR 새로고침</button>
-    </div>
-
-    <div class="section-title">데이터 관리</div>
-    <div class="settings-block">
-      <div class="settings-row" onclick="exportCSV()">
-        <span class="s-icon">📤</span>
-        <div class="s-text"><h3>손님 목록 내보내기</h3><p>CSV 파일로 다운로드</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-      <div class="settings-row" onclick="confirmReset()">
-        <span class="s-icon">🗑️</span>
-        <div class="s-text"><h3>전체 데이터 초기화</h3><p style="color:#E53935">모든 손님 정보 삭제</p></div>
-        <span class="s-arrow">›</span>
-      </div>
-    </div>
-
-    <div style="text-align:center;padding:24px 20px 10px;color:#CCC;font-size:12px;">
-      카페 도장쿠폰 v1.0 · Made with ☕
-    </div>
-  </div>
-
-</div><!-- /#app -->
-
-<!-- ════ TAB BAR ════ -->
-<div class="tab-bar" id="tabBar">
-  <div class="tab-item active" onclick="showTab('home')" id="tab-home">
-    <span class="tab-icon">🏠</span><span>홈</span>
-  </div>
-  <div class="tab-item" onclick="showTab('customers')" id="tab-customers">
-    <span class="tab-icon">👥</span><span>손님</span>
-  </div>
-  <div class="tab-item" onclick="showTab('settings')" id="tab-settings">
-    <span class="tab-icon">⚙️</span><span>설정</span>
-  </div>
-</div>
-
-<!-- ════ MODALS ════ -->
-
-<!-- 손님 상세 -->
-<div class="overlay" id="custModal" onclick="bgClose(event,'custModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="custModalTitle">손님</div>
-      <button class="close-btn" onclick="closeModal('custModal')">✕</button>
-    </div>
-    <div id="custModalBody"></div>
-  </div>
-</div>
-
-<!-- 새 손님 등록 -->
-<div class="overlay" id="newCustModal" onclick="bgClose(event,'newCustModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title">새 손님 등록</div>
-      <button class="close-btn" onclick="closeModal('newCustModal')">✕</button>
-    </div>
-    <div class="input-group">
-      <label>이름 *</label>
-      <input type="text" id="newName" placeholder="손님 이름">
-    </div>
-    <div class="input-group">
-      <label>전화번호 (선택)</label>
-      <input type="tel" id="newPhone" placeholder="010-0000-0000" inputmode="numeric">
-    </div>
-    <button class="btn btn-primary" onclick="addCustomer()">등록 후 도장 찍기</button>
-  </div>
-</div>
-
-<!-- 설정 편집 -->
-<div class="overlay" id="settingModal" onclick="bgClose(event,'settingModal')">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-header">
-      <div class="modal-title" id="settingModalTitle">설정 변경</div>
-      <button class="close-btn" onclick="closeModal('settingModal')">✕</button>
-    </div>
-    <div class="input-group">
-      <label id="sLabel1">값</label>
-      <input type="text" id="sInput1" placeholder="">
-    </div>
-    <div class="input-group" id="sInput2Group" style="display:none">
-      <label id="sLabel2">확인</label>
-      <input type="text" id="sInput2" placeholder="">
-    </div>
-    <button class="btn btn-primary" onclick="saveSetting()">저장</button>
-  </div>
-</div>
-
-<!-- 커스텀 확인 모달 -->
-<div class="overlay" id="confirmModal">
-  <div class="modal" style="padding-bottom:24px;">
-    <div class="modal-handle"></div>
-    <p id="confirmMsg" style="font-size:16px;font-weight:600;text-align:center;padding:8px 0 20px;line-height:1.5;"></p>
-    <button class="btn btn-danger" id="confirmOkBtn">확인</button>
-    <button class="btn btn-secondary" onclick="closeModal('confirmModal')" style="margin-top:8px;">취소</button>
-  </div>
-</div>
-
-<!-- 토스트 -->
-<div class="toast" id="toast"></div>
-
-<script>
-// ══════════════════════════════════════
-//  DATA LAYER
-// ══════════════════════════════════════
-const DEFAULTS = {
-  settings: {
-    cafeName: '내 카페',
-    stampsRequired: 10,
-    reward: '아메리카노 1잔 무료',
-    password: '1234',
-    ownerPhone: '',
-    registerUrl: ''
-  }
-};
-
-function ls(key)      { try { return JSON.parse(localStorage.getItem('cafe_'+key)); } catch(e){ return null; } }
-function lsSave(k, v) { localStorage.setItem('cafe_'+k, JSON.stringify(v)); }
-
-function loadAll() {
-  return {
-    settings:  ls('settings')  || Object.assign({}, DEFAULTS.settings),
-    customers: ls('customers') || [],
-    activity:  ls('activity')  || [],
-  };
-}
-
-let D = loadAll();
-function save() {
-  lsSave('settings',  D.settings);
-  lsSave('customers', D.customers);
-  lsSave('activity',  D.activity);
-}
-
-// ══════════════════════════════════════
-//  PIN
-// ══════════════════════════════════════
-let pin = '';
-
-function pinInput(d) {
-  if (pin.length >= 4) return;
-  pin += d;
-  updateDots();
-  if (pin.length === 4) setTimeout(checkPin, 120);
-}
-function pinDelete() {
-  pin = pin.slice(0, -1);
-  updateDots();
-}
-function updateDots() {
-  for (var i = 0; i < 4; i++)
-    document.getElementById('pd'+i).classList.toggle('filled', i < pin.length);
-}
-function checkPin() {
-  D = loadAll();
-  if (pin === D.settings.password) {
-    document.getElementById('pinScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('tabBar').style.display = 'flex';
-    renderAll();
-  } else {
-    pin = '';
-    updateDots();
-    var err = document.getElementById('pinError');
-    var pad = document.getElementById('pinPad');
-    err.classList.add('show');
-    pad.classList.add('shake');
-    setTimeout(function() {
-      err.classList.remove('show');
-      pad.classList.remove('shake');
-    }, 1400);
-  }
-}
-
-// ══════════════════════════════════════
-//  TABS
-// ══════════════════════════════════════
-function showTab(name) {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.querySelectorAll('.tab-item').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('screen-'+name).classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
-  D = loadAll();
-  if (name === 'home')      renderHome();
-  if (name === 'customers') renderCustomers();
-  if (name === 'settings')  renderSettings();
-}
-
-function renderAll() {
-  D = loadAll();
-  document.getElementById('pinCafeName').textContent = D.settings.cafeName;
-  renderHome();
-  renderCustomers();
-  renderSettings();
-}
-
-// ══════════════════════════════════════
-//  HOME
-// ══════════════════════════════════════
-function renderHome() {
-  document.getElementById('homeTitle').textContent = '☕ ' + D.settings.cafeName;
-  document.getElementById('homeDate').textContent =
-    new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
-
-  var today = todayStr();
-  document.getElementById('statToday').textContent   = D.activity.filter(function(a){ return a.date===today && a.type==='stamp'; }).length;
-  document.getElementById('statTotal').textContent   = D.customers.length;
-  document.getElementById('statCoupons').textContent = D.activity.filter(function(a){ return a.type==='coupon'; }).length;
-  document.getElementById('statStamps').textContent  = D.activity.filter(function(a){ return a.type==='stamp'; }).length;
-
-  var recent = D.activity.slice().reverse().slice(0, 6);
-  var el = document.getElementById('recentList');
-  if (!recent.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">☕</div><p>아직 도장 내역이 없어요<br>첫 손님을 등록해보세요!</p></div>';
-    return;
-  }
-  el.innerHTML = recent.map(function(a) {
-    var c = D.customers.find(function(x){ return x.id===a.cid; }) || {};
-    var isCoupon = a.type === 'coupon';
-    var time = new Date(a.ts).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-    return '<div class="act-row '+(isCoupon?'coupon':'')+'">'+
-      '<div class="act-icon">'+(isCoupon?'🎁':'☕')+'</div>'+
-      '<div class="act-info">'+
-        '<h4>'+(c.name||'손님')+'</h4>'+
-        '<p>'+(isCoupon ? '쿠폰 교환 완료' : '도장 적립 · 현재 '+a.stamps+'개')+'</p>'+
-      '</div>'+
-      '<div class="act-time">'+time+'</div>'+
-    '</div>';
-  }).join('');
-}
-
-// ══════════════════════════════════════
-//  QUICK STAMP
-// ══════════════════════════════════════
-function quickStamp() {
-  var q = document.getElementById('quickInput').value.trim();
-  if (!q) { toast('이름 또는 전화번호를 입력하세요'); return; }
-  D = loadAll();
-  var ql = q.toLowerCase().replace(/-/g,'');
-  var hits = D.customers.filter(function(c) {
-    return c.name.toLowerCase().indexOf(ql) >= 0 ||
-      (c.phone && c.phone.replace(/-/g,'').indexOf(ql) >= 0);
-  });
-  if (!hits.length) {
-    toast('손님을 찾을 수 없어요 → 새 손님 등록');
-    openNewCustomer();
-    return;
-  }
-  if (hits.length === 1) {
-    openCustModal(hits[0].id);
-  } else {
-    showMultiMatch(hits);
-  }
-}
-
-function showMultiMatch(list) {
-  document.getElementById('custModalTitle').textContent = '손님 선택';
-  document.getElementById('custModalBody').innerHTML = list.map(function(c) {
-    return '<div class="customer-row" style="border-radius:12px;margin-bottom:8px;border:2px solid #F0E8E0;" '+
-      'onclick="closeModal(\'custModal\');openCustModal(\''+c.id+'\')">'+
-      '<div class="avatar">'+c.name[0]+'</div>'+
-      '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · 도장 '+(c.stamps||0)+'개</p></div>'+
-    '</div>';
-  }).join('');
-  openModal('custModal');
-}
-
-// ══════════════════════════════════════
-//  CUSTOMER MODAL
-// ══════════════════════════════════════
-function openCustModal(cid) {
-  D = loadAll();
-  var c = D.customers.find(function(x){ return x.id===cid; });
-  if (!c) return;
-  var req = D.settings.stampsRequired;
-  var currentInCycle = c.stamps % req;
-  var canRedeem = c.stamps >= req;
-  var cols = req <= 5 ? req : (req <= 8 ? 4 : 5);
-
-  var dots = '';
-  for (var i = 0; i < req; i++) {
-    var f = i < currentInCycle;
-    dots += '<div class="stamp-dot '+(f?'filled':'')+'">'+(f?'☕':'')+'</div>';
-  }
-
-  document.getElementById('custModalTitle').textContent = c.name;
-  document.getElementById('custModalBody').innerHTML =
-    '<div style="text-align:center;margin-bottom:18px;">'+
-      '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6B4226,#9B6542);'+
-        'color:white;font-size:28px;font-weight:800;display:flex;align-items:center;'+
-        'justify-content:center;margin:0 auto 10px;">'+c.name[0]+'</div>'+
-      '<div style="color:#666;font-size:14px;">'+(c.phone||'전화번호 없음')+'</div>'+
-      '<div style="margin-top:8px;">'+
-        '<span class="pill">총 방문 '+(c.visits||0)+'회</span> '+
-        '<span class="pill">쿠폰 사용 '+(c.couponsUsed||0)+'회</span>'+
-      '</div>'+
-    '</div>'+
-    (canRedeem ?
-      '<div class="coupon-alert">'+
-        '<div class="ca-title">🎁 쿠폰 교환 가능!</div>'+
-        '<div class="ca-sub">'+D.settings.reward+'</div>'+
-      '</div>' : '')+
-    '<div style="background:#F5F0EB;border-radius:16px;padding:16px;margin-bottom:16px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
-        '<span style="font-size:13px;font-weight:700;color:#6B4226">현재 도장</span>'+
-        '<span style="font-size:14px;font-weight:800;color:#6B4226">'+currentInCycle+' / '+req+'</span>'+
-      '</div>'+
-      '<div class="progress-bar"><div class="progress-fill" style="width:'+((currentInCycle/req)*100)+'%"></div></div>'+
-      '<div class="stamp-grid" style="grid-template-columns:repeat('+cols+',1fr);margin-top:12px;">'+dots+'</div>'+
-    '</div>'+
-    '<button class="btn btn-primary" onclick="addStamp(\''+cid+'\')">☕ 도장 찍기</button>'+
-    (canRedeem ? '<button class="btn btn-success" onclick="redeemCoupon(\''+cid+'\')">🎁 쿠폰 교환하기</button>' : '')+
-    (c.stamps > 0 ? '<button class="btn btn-secondary" onclick="removeStamp(\''+cid+'\')">↩️ 도장 1개 취소</button>' : '')+
-    '<button class="btn btn-danger" onclick="delCustomer(\''+cid+'\')">손님 삭제</button>';
-
-  openModal('custModal');
-}
-
-function addStamp(cid) {
-  D = loadAll();
-  var i = D.customers.findIndex(function(x){ return x.id===cid; });
-  if (i < 0) return;
-  D.customers[i].stamps  = (D.customers[i].stamps  || 0) + 1;
-  D.customers[i].visits  = (D.customers[i].visits  || 0) + 1;
-  D.customers[i].lastVisit = new Date().toISOString();
-  var req = D.settings.stampsRequired;
-  var cur = D.customers[i].stamps % req;
-  D.activity.push({ id: uid(), cid: cid, type: 'stamp', stamps: cur === 0 ? req : cur, date: todayStr(), ts: new Date().toISOString() });
-  save();
-  closeModal('custModal');
-  document.getElementById('quickInput').value = '';
-  var disp = D.customers[i].stamps % req;
-  toast('✅ 도장 찍었어요! (' + (disp === 0 ? req : disp) + '/' + req + ')');
-  D = loadAll(); renderHome(); renderCustomers();
-}
-
-function removeStamp(cid) {
-  showConfirm('도장 1개를 취소할까요?', function() {
-    D = loadAll();
-    var i = D.customers.findIndex(function(x){ return x.id===cid; });
-    if (i < 0) return;
-    if (D.customers[i].stamps <= 0) { toast('취소할 도장이 없어요'); return; }
-    D.customers[i].stamps -= 1;
-    var lastStampIdx = -1;
-    for (var j = D.activity.length - 1; j >= 0; j--) {
-      if (D.activity[j].cid === cid && D.activity[j].type === 'stamp') {
-        lastStampIdx = j; break;
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="theme-color" content="#6B4226" />
+    <title>카페 도장쿠폰</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
       }
-    }
-    if (lastStampIdx >= 0) D.activity.splice(lastStampIdx, 1);
-    save();
-    closeModal('custModal');
-    toast('↩️ 도장 1개 취소됐어요');
-    D = loadAll(); renderHome(); renderCustomers();
-  });
-}
+      body {
+        font-family:
+          -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
+        background: #f5f0eb;
+        color: #2c1810;
+        max-width: 430px;
+        margin: 0 auto;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+      }
 
-function redeemCoupon(cid) {
-  D = loadAll();
-  var i = D.customers.findIndex(function(x){ return x.id===cid; });
-  if (i < 0) return;
-  var req = D.settings.stampsRequired;
-  if (D.customers[i].stamps < req) { toast('도장이 부족해요'); return; }
-  D.customers[i].stamps -= req;
-  D.customers[i].couponsUsed = (D.customers[i].couponsUsed || 0) + 1;
-  D.activity.push({ id: uid(), cid: cid, type: 'coupon', date: todayStr(), ts: new Date().toISOString() });
-  save();
-  closeModal('custModal');
-  toast('🎁 쿠폰 교환 완료!');
-  D = loadAll(); renderHome(); renderCustomers();
-}
+      /* ── PIN SCREEN ── */
+      .pin-screen {
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(160deg, #6b4226 0%, #3e2010 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 999;
+      }
+      .pin-logo {
+        font-size: 56px;
+        margin-bottom: 12px;
+      }
+      .pin-screen h2 {
+        color: white;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .pin-screen p {
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 14px;
+        margin-top: 6px;
+        margin-bottom: 40px;
+      }
+      .pin-dots {
+        display: flex;
+        gap: 18px;
+        margin-bottom: 36px;
+      }
+      .pin-dot {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transition: background 0.15s;
+      }
+      .pin-dot.filled {
+        background: white;
+      }
+      .pin-pad {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        width: 280px;
+      }
+      .pin-btn {
+        height: 76px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        color: white;
+        font-size: 26px;
+        font-weight: 400;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.1s;
+      }
+      .pin-btn:active {
+        background: rgba(255, 255, 255, 0.28);
+      }
+      .pin-btn.del {
+        font-size: 22px;
+      }
+      .pin-btn.empty {
+        background: transparent;
+        cursor: default;
+        pointer-events: none;
+      }
+      .pin-error {
+        color: #ffb3a7;
+        font-size: 13px;
+        margin-top: 20px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .pin-error.show {
+        opacity: 1;
+      }
 
-function delCustomer(cid) {
-  showConfirm('이 손님 정보를 삭제할까요?', function() {
-    D = loadAll();
-    D.customers = D.customers.filter(function(x){ return x.id !== cid; });
-    save();
-    closeModal('custModal');
-    toast('손님이 삭제되었어요');
-    D = loadAll(); renderAll();
-  });
-}
+      /* ── APP SHELL ── */
+      #app {
+        display: none;
+      }
+      .screen {
+        display: none;
+        padding-bottom: 80px;
+        min-height: 100vh;
+      }
+      .screen.active {
+        display: block;
+      }
 
-// ══════════════════════════════════════
-//  NEW CUSTOMER
-// ══════════════════════════════════════
-function openNewCustomer() {
-  document.getElementById('newName').value  = '';
-  document.getElementById('newPhone').value = '';
-  openModal('newCustModal');
-}
-function addCustomer() {
-  var name  = document.getElementById('newName').value.trim();
-  var phone = document.getElementById('newPhone').value.trim();
-  if (!name) { toast('이름을 입력해주세요'); return; }
-  D = loadAll();
-  if (D.customers.some(function(c){ return c.name === name; })) {
-    toast('같은 이름의 손님이 이미 있어요'); return;
-  }
-  var nc = { id: uid(), name: name, phone: phone, stamps: 0, visits: 0, couponsUsed: 0,
-             createdAt: new Date().toISOString(), lastVisit: null };
-  D.customers.push(nc);
-  save();
-  closeModal('newCustModal');
-  toast(name + ' 손님 등록 완료!');
-  D = loadAll(); renderCustomers(); renderHome();
-  openCustModal(nc.id);
-}
+      /* ── HEADER ── */
+      .header {
+        background: linear-gradient(135deg, #6b4226, #9b6542);
+        color: white;
+        padding: 18px 20px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+      .header h1 {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .header p {
+        font-size: 13px;
+        opacity: 0.75;
+        margin-top: 3px;
+      }
 
-// ══════════════════════════════════════
-//  CUSTOMER LIST
-// ══════════════════════════════════════
-function renderCustomers() {
-  var searchEl = document.getElementById('custSearch');
-  var q = (searchEl ? searchEl.value : '').toLowerCase().replace(/-/g,'');
-  document.getElementById('custCount').textContent = '전체 ' + D.customers.length + '명';
-  var list = D.customers.filter(function(c) {
-    if (!q) return true;
-    return c.name.toLowerCase().indexOf(q) >= 0 ||
-      (c.phone && c.phone.replace(/-/g,'').indexOf(q) >= 0);
-  });
-  list.sort(function(a, b) {
-    if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name, 'ko');
-    if (!a.lastVisit) return 1;
-    if (!b.lastVisit) return -1;
-    return new Date(b.lastVisit) - new Date(a.lastVisit);
-  });
-  var el = document.getElementById('custList');
-  if (!list.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'검색 결과가 없어요':'등록된 손님이 없어요')+'</p></div>';
-    return;
-  }
-  var req = D.settings.stampsRequired;
-  el.innerHTML = list.map(function(c) {
-    var cur  = c.stamps % req;
-    var full = c.stamps >= req;
-    var lv = c.lastVisit
-      ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {month:'short', day:'numeric'})
-      : '미방문';
-    return '<div class="customer-row" onclick="openCustModal(\''+c.id+'\')">'+
-      '<div class="avatar">'+c.name[0]+'</div>'+
-      '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · '+lv+'</p></div>'+
-      '<span class="stamp-badge '+(full?'full':'')+'">'+
-        (full ? '🎁 쿠폰' : '☕ '+cur+'/'+req)+
-      '</span>'+
-    '</div>';
-  }).join('');
-}
+      /* ── TAB BAR ── */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 100%;
+        max-width: 430px;
+        background: white;
+        border-top: 1px solid #e8ddd4;
+        display: none;
+        z-index: 100;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .tab-bar {
+        display: flex;
+      }
+      .tab-item {
+        flex: 1;
+        padding: 10px 0 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        cursor: pointer;
+        color: #b0a090;
+        font-size: 10px;
+        font-weight: 600;
+        transition: color 0.15s;
+      }
+      .tab-item.active {
+        color: #6b4226;
+      }
+      .tab-icon {
+        font-size: 22px;
+      }
 
-// ══════════════════════════════════════
-//  SETTINGS
-// ══════════════════════════════════════
-function renderSettings() {
-  document.getElementById('sCafeName').textContent    = D.settings.cafeName;
-  document.getElementById('sStamps').textContent      = D.settings.stampsRequired + '개';
-  document.getElementById('sReward').textContent      = D.settings.reward;
-  document.getElementById('sOwnerPhone').textContent  = D.settings.ownerPhone || '문자 수신용 (예: 01012345678)';
-  document.getElementById('sRegisterUrl').textContent = D.settings.registerUrl || 'Vercel 배포 후 주소 입력';
-  refreshQR();
-}
+      /* ── STAT CARDS ── */
+      .stat-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 14px 16px 0;
+      }
+      .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 16px 14px;
+        box-shadow: 0 2px 8px rgba(107, 66, 38, 0.08);
+      }
+      .stat-card .value {
+        font-size: 28px;
+        font-weight: 800;
+        color: #6b4226;
+      }
+      .stat-card .label {
+        font-size: 11px;
+        color: #999;
+        margin-top: 3px;
+      }
 
-function buildRegisterUrl() {
-  var base = D.settings.registerUrl;
-  if (!base) return '';
-  // 슬래시 처리
-  if (base.charAt(base.length - 1) !== '/') base += '/';
-  // 실제 배포 URL은 index.html 없이 루트로 서빙됨
-  var params = new URLSearchParams({
-    cafe:  D.settings.cafeName,
-    phone: D.settings.ownerPhone,
-    req:   String(D.settings.stampsRequired)
-  });
-  return base + '?' + params.toString();
-}
+      /* ── SECTION TITLE ── */
+      .section-title {
+        font-size: 15px;
+        font-weight: 700;
+        padding: 18px 16px 8px;
+        color: #2c1810;
+      }
 
-function refreshQR() {
-  var url = buildRegisterUrl();
-  var card = document.getElementById('qrCard');
-  var container = document.getElementById('qrCanvas');
-  if (!url) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  container.innerHTML = '';
-  if (window.QRCode) {
-    new QRCode(container, {
-      text: url,
-      width: 200, height: 200,
-      colorDark: '#3E2010', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } else {
-    // QRCode 라이브러리 로드 후 재시도
-    loadQRLib(function() { refreshQR(); });
-  }
-}
+      /* ── CARD ── */
+      .card {
+        background: white;
+        border-radius: 18px;
+        padding: 18px 16px;
+        margin: 0 16px 12px;
+        box-shadow: 0 2px 10px rgba(107, 66, 38, 0.07);
+      }
 
-function loadQRLib(cb) {
-  if (window.QRCode) { cb(); return; }
-  var s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-  s.onload = cb;
-  document.head.appendChild(s);
-}
+      /* ── BUTTONS ── */
+      .btn {
+        padding: 15px 20px;
+        border-radius: 14px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        border: none;
+        width: 100%;
+        transition:
+          transform 0.1s,
+          opacity 0.15s;
+        display: block;
+      }
+      .btn:active {
+        transform: scale(0.97);
+        opacity: 0.88;
+      }
+      .btn-primary {
+        background: #6b4226;
+        color: white;
+      }
+      .btn-secondary {
+        background: #f0e8e0;
+        color: #6b4226;
+      }
+      .btn-success {
+        background: #e6f4ea;
+        color: #2e7d32;
+      }
+      .btn-danger {
+        background: #fff0ee;
+        color: #d32f2f;
+      }
+      .btn + .btn {
+        margin-top: 9px;
+      }
 
-var curKey = '';
-function editSetting(key) {
-  curKey = key;
-  var titleMap = { cafeName:'카페 이름', stampsRequired:'쿠폰 도장 수', reward:'쿠폰 보상', password:'비밀번호 변경', ownerPhone:'사장님 전화번호', registerUrl:'등록 페이지 URL' };
-  var labelMap = { cafeName:'카페 이름', stampsRequired:'도장 수 (1~20)', reward:'쿠폰 보상 내용', password:'새 비밀번호 (4자리)', ownerPhone:'전화번호 (하이픈 없이, 예: 01012345678)', registerUrl:'Vercel/Netlify 배포 후 받은 URL' };
-  document.getElementById('settingModalTitle').textContent = titleMap[key];
-  document.getElementById('sLabel1').textContent = labelMap[key];
-  document.getElementById('sInput2Group').style.display = 'none';
-  var inp = document.getElementById('sInput1');
-  inp.type = 'text'; inp.inputMode = 'text'; inp.removeAttribute('maxlength');
-  if (key === 'password') {
-    inp.value = ''; inp.type = 'password'; inp.inputMode = 'numeric'; inp.maxLength = 4;
-    document.getElementById('sInput2Group').style.display = 'block';
-    document.getElementById('sLabel2').textContent = '비밀번호 확인';
-    document.getElementById('sInput2').value = '';
-    document.getElementById('sInput2').type = 'password';
-  } else if (key === 'stampsRequired') {
-    inp.value = D.settings.stampsRequired; inp.type = 'number'; inp.inputMode = 'numeric';
-  } else if (key === 'ownerPhone') {
-    inp.value = D.settings.ownerPhone || ''; inp.type = 'tel'; inp.inputMode = 'numeric';
-  } else {
-    inp.value = D.settings[key] || '';
-  }
-  openModal('settingModal');
-}
-function saveSetting() {
-  var v1 = document.getElementById('sInput1').value.trim();
-  if (curKey === 'password') {
-    var v2 = document.getElementById('sInput2').value.trim();
-    if (!/^\d{4}$/.test(v1)) { toast('4자리 숫자를 입력하세요'); return; }
-    if (v1 !== v2)            { toast('비밀번호가 일치하지 않아요'); return; }
-    D.settings.password = v1;
-  } else if (curKey === 'stampsRequired') {
-    var n = parseInt(v1);
-    if (isNaN(n) || n < 1 || n > 20) { toast('1~20 사이 숫자를 입력하세요'); return; }
-    D.settings.stampsRequired = n;
-  } else {
-    if (!v1) { toast('값을 입력하세요'); return; }
-    D.settings[curKey] = v1;
-  }
-  save(); closeModal('settingModal'); renderSettings(); renderHome();
-  if (curKey === 'registerUrl' || curKey === 'ownerPhone') {
-    loadQRLib(function() { refreshQR(); });
-  }
-  toast('설정이 저장되었어요 ✅');
-}
+      /* ── INPUT ── */
+      .input-group {
+        margin-bottom: 14px;
+      }
+      .input-group label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 6px;
+        display: block;
+        font-weight: 600;
+      }
+      .input-group input,
+      .input-group select {
+        width: 100%;
+        padding: 13px 14px;
+        border: 2px solid #e8ddd4;
+        border-radius: 12px;
+        font-size: 16px;
+        outline: none;
+        transition: border-color 0.2s;
+        background: white;
+        color: #2c1810;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+      .input-group input:focus,
+      .input-group select:focus {
+        border-color: #6b4226;
+      }
 
-// ══════════════════════════════════════
-//  EXPORT & RESET
-// ══════════════════════════════════════
-function exportCSV() {
-  D = loadAll();
-  var header = '이름,전화번호,누적도장,총방문,쿠폰사용,마지막방문';
-  var rows = D.customers.map(function(c) {
-    return '"'+c.name+'","'+(c.phone||'')+'",'+
-      (c.stamps||0)+','+(c.visits||0)+','+(c.couponsUsed||0)+','+
-      '"'+(c.lastVisit ? new Date(c.lastVisit).toLocaleDateString('ko-KR') : '')+'"';
-  });
-  var csv = '\uFEFF' + [header].concat(rows).join('\n');
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '카페손님_' + todayStr() + '.csv';
-  a.click();
-  toast('CSV 파일로 내보냈어요 📤');
-}
-function confirmReset() {
-  showConfirm('모든 손님 정보를 삭제할까요?\n되돌릴 수 없어요.', function() {
-    D.customers = []; D.activity = [];
-    save(); renderAll(); toast('데이터가 초기화되었어요');
-  });
-}
+      /* ── CUSTOMER ROW ── */
+      .customer-row {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        background: white;
+        border-bottom: 1px solid #f5ede6;
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+      .customer-row:active {
+        background: #fbf6f2;
+      }
+      .avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6b4226, #9b6542);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 800;
+        flex-shrink: 0;
+      }
+      .cust-info {
+        flex: 1;
+        margin-left: 12px;
+      }
+      .cust-info h3 {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .cust-info p {
+        font-size: 12px;
+        color: #999;
+        margin-top: 2px;
+      }
+      .stamp-badge {
+        background: #f5ede6;
+        color: #6b4226;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 5px 12px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .stamp-badge.full {
+        background: #6b4226;
+        color: white;
+      }
 
-// ══════════════════════════════════════
-//  MODAL HELPERS
-// ══════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-function bgClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+      /* ── STAMP GRID ── */
+      .stamp-grid {
+        display: grid;
+        gap: 8px;
+      }
+      .stamp-dot {
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: #ede4dc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        transition: all 0.25s;
+      }
+      .stamp-dot.filled {
+        background: #6b4226;
+      }
 
-var _confirmCb = null;
-function showConfirm(msg, callback) {
-  _confirmCb = callback;
-  document.getElementById('confirmMsg').textContent = msg;
-  document.getElementById('confirmOkBtn').onclick = function() {
-    closeModal('confirmModal');
-    if (_confirmCb) _confirmCb();
-  };
-  openModal('confirmModal');
-}
+      /* ── PROGRESS BAR ── */
+      .progress-bar {
+        height: 7px;
+        background: #e8ddd4;
+        border-radius: 6px;
+        overflow: hidden;
+        margin: 8px 0;
+      }
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #6b4226, #c4945a);
+        border-radius: 6px;
+        transition: width 0.5s ease;
+      }
 
-// ══════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════
-var toastTmr;
-function toast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTmr);
-  toastTmr = setTimeout(function(){ el.classList.remove('show'); }, 2400);
-}
+      /* ── OVERLAY / MODAL ── */
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(30, 15, 5, 0.55);
+        z-index: 200;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .overlay.show {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        border-radius: 26px 26px 0 0;
+        padding: 22px 20px 32px;
+        width: 100%;
+        max-width: 430px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .modal-title {
+        font-size: 20px;
+        font-weight: 800;
+      }
+      .close-btn {
+        font-size: 24px;
+        color: #bbb;
+        cursor: pointer;
+        background: none;
+        border: none;
+        line-height: 1;
+      }
+      .modal-handle {
+        width: 40px;
+        height: 4px;
+        background: #e0d4c8;
+        border-radius: 4px;
+        margin: 0 auto 18px;
+      }
 
-// ══════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════
-function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function todayStr() { return new Date().toISOString().slice(0,10); }
+      /* ── MENU ITEM ── */
+      .menu-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        background: white;
+        border-bottom: 1px solid #f5ede6;
+      }
+      .menu-item .m-name {
+        flex: 1;
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .menu-item .m-price {
+        font-size: 15px;
+        font-weight: 800;
+        color: #6b4226;
+      }
+      .menu-item .m-btns {
+        display: flex;
+        gap: 6px;
+        margin-left: 12px;
+      }
+      .icon-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        padding: 4px;
+      }
 
-// ══════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════
-(function init() {
-  D = loadAll();
-  document.getElementById('pinCafeName').textContent = D.settings.cafeName;
-  document.getElementById('pinScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('tabBar').style.display = 'none';
-})();
-</script>
-</body>
+      /* ── SETTINGS ── */
+      .settings-block {
+        background: white;
+        border-radius: 16px;
+        margin: 0 16px 14px;
+        overflow: hidden;
+      }
+      .settings-row {
+        display: flex;
+        align-items: center;
+        padding: 15px 16px;
+        cursor: pointer;
+        border-bottom: 1px solid #f5ede6;
+        transition: background 0.1s;
+      }
+      .settings-row:last-child {
+        border-bottom: none;
+      }
+      .settings-row:active {
+        background: #fbf6f2;
+      }
+      .settings-row .s-icon {
+        font-size: 22px;
+        margin-right: 14px;
+      }
+      .settings-row .s-text {
+        flex: 1;
+      }
+      .settings-row .s-text h3 {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .settings-row .s-text p {
+        font-size: 12px;
+        color: #999;
+        margin-top: 2px;
+      }
+      .settings-row .s-arrow {
+        color: #ccc;
+        font-size: 18px;
+      }
+
+      /* ── SEARCH BAR ── */
+      .search-wrap {
+        padding: 10px 16px;
+        position: sticky;
+        top: 60px;
+        background: #f5f0eb;
+        z-index: 40;
+      }
+      .search-input {
+        width: 100%;
+        padding: 11px 14px 11px 40px;
+        border: 2px solid #e8ddd4;
+        border-radius: 14px;
+        font-size: 15px;
+        outline: none;
+        background: white;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23BBB' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 13px center;
+      }
+      .search-input:focus {
+        border-color: #6b4226;
+      }
+
+      /* ── FAB ── */
+      .fab {
+        position: fixed;
+        bottom: 86px;
+        right: calc(50% - 215px + 20px);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: #6b4226;
+        color: white;
+        font-size: 30px;
+        border: none;
+        box-shadow: 0 4px 18px rgba(107, 66, 38, 0.45);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 90;
+        transition: transform 0.15s;
+      }
+      @media (max-width: 430px) {
+        .fab {
+          right: 20px;
+        }
+      }
+      .fab:active {
+        transform: scale(0.92);
+      }
+
+      /* ── PILL ── */
+      .pill {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        background: #f0e8e0;
+        color: #6b4226;
+        margin: 2px;
+      }
+
+      /* ── COUPON ALERT ── */
+      .coupon-alert {
+        background: linear-gradient(135deg, #fff8e1, #fff3cd);
+        border: 2px solid #ffd54f;
+        border-radius: 16px;
+        padding: 14px 16px;
+        margin-bottom: 16px;
+        text-align: center;
+      }
+      .coupon-alert .ca-title {
+        font-size: 16px;
+        font-weight: 800;
+        color: #795548;
+      }
+      .coupon-alert .ca-sub {
+        font-size: 12px;
+        color: #888;
+        margin-top: 4px;
+      }
+
+      /* ── EMPTY STATE ── */
+      .empty-state {
+        text-align: center;
+        padding: 64px 20px;
+        color: #bbb;
+      }
+      .empty-state .es-icon {
+        font-size: 52px;
+        margin-bottom: 14px;
+      }
+      .empty-state p {
+        font-size: 15px;
+        line-height: 1.5;
+      }
+
+      /* ── TOAST ── */
+      .toast {
+        position: fixed;
+        bottom: 88px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 15, 5, 0.88);
+        color: white;
+        padding: 11px 22px;
+        border-radius: 24px;
+        font-size: 14px;
+        z-index: 400;
+        opacity: 0;
+        transition: opacity 0.25s;
+        pointer-events: none;
+        white-space: nowrap;
+        font-weight: 500;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+
+      /* ── ACTIVITY ROW ── */
+      .act-row {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background: white;
+        border-bottom: 1px solid #f5ede6;
+      }
+      .act-row .act-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: #f0e8e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+      }
+      .act-row.coupon .act-icon {
+        background: #fff8e1;
+      }
+      .act-row .act-info {
+        flex: 1;
+        margin-left: 12px;
+      }
+      .act-row .act-info h4 {
+        font-size: 14px;
+        font-weight: 600;
+      }
+      .act-row .act-info p {
+        font-size: 12px;
+        color: #999;
+        margin-top: 2px;
+      }
+      .act-row .act-time {
+        font-size: 12px;
+        color: #ccc;
+      }
+
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        20%,
+        60% {
+          transform: translateX(-10px);
+        }
+        40%,
+        80% {
+          transform: translateX(10px);
+        }
+      }
+      .shake {
+        animation: shake 0.4s;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- ════════════ PIN SCREEN ════════════ -->
+    <div class="pin-screen" id="pinScreen">
+      <div class="pin-logo">☕</div>
+      <h2 id="pinCafeName">내 카페</h2>
+      <p>사장님 비밀번호 4자리</p>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+      </div>
+      <div class="pin-pad" id="pinPad">
+        <button class="pin-btn" onclick="pinInput('1')">1</button>
+        <button class="pin-btn" onclick="pinInput('2')">2</button>
+        <button class="pin-btn" onclick="pinInput('3')">3</button>
+        <button class="pin-btn" onclick="pinInput('4')">4</button>
+        <button class="pin-btn" onclick="pinInput('5')">5</button>
+        <button class="pin-btn" onclick="pinInput('6')">6</button>
+        <button class="pin-btn" onclick="pinInput('7')">7</button>
+        <button class="pin-btn" onclick="pinInput('8')">8</button>
+        <button class="pin-btn" onclick="pinInput('9')">9</button>
+        <button class="pin-btn empty"></button>
+        <button class="pin-btn" onclick="pinInput('0')">0</button>
+        <button class="pin-btn del" onclick="pinDelete()">⌫</button>
+      </div>
+      <div class="pin-error" id="pinError">비밀번호가 틀렸어요</div>
+    </div>
+
+    <!-- ════════════ APP ════════════ -->
+    <div id="app">
+      <!-- ── 홈 탭 ── -->
+      <div class="screen active" id="screen-home">
+        <div class="header">
+          <h1 id="homeTitle">☕ 내 카페</h1>
+          <p id="homeDate">-</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="value" id="statToday">0</div>
+            <div class="label">오늘 방문</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statTotal">0</div>
+            <div class="label">전체 손님</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statCoupons">0</div>
+            <div class="label">쿠폰 교환</div>
+          </div>
+          <div class="stat-card">
+            <div class="value" id="statStamps">0</div>
+            <div class="label">누적 도장</div>
+          </div>
+        </div>
+
+        <div class="section-title">☕ 도장 찍기</div>
+        <div class="card">
+          <div class="input-group" style="margin-bottom: 10px">
+            <label>손님 이름 또는 전화번호 뒷 4자리</label>
+            <input
+              type="text"
+              id="quickInput"
+              placeholder="예: 홍길동 / 5678"
+              onkeydown="if (event.key === 'Enter') quickStamp();"
+            />
+          </div>
+          <button class="btn btn-primary" onclick="quickStamp()">
+            ☕ 도장 찍기
+          </button>
+          <button class="btn btn-secondary" onclick="openNewCustomer()">
+            + 새 손님 등록
+          </button>
+        </div>
+
+        <div class="section-title">📋 최근 내역</div>
+        <div
+          style="
+            background: white;
+            border-radius: 18px;
+            margin: 0 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(107, 66, 38, 0.07);
+          "
+        >
+          <div id="recentList"></div>
+        </div>
+      </div>
+
+      <!-- ── 손님 탭 ── -->
+      <div class="screen" id="screen-customers">
+        <div class="header">
+          <h1>손님 목록</h1>
+          <p id="custCount">전체 0명</p>
+        </div>
+        <div class="search-wrap">
+          <input
+            class="search-input"
+            type="text"
+            id="custSearch"
+            placeholder="이름 또는 전화번호 검색..."
+            oninput="renderCustomers()"
+          />
+        </div>
+        <div
+          style="
+            background: white;
+            border-radius: 18px;
+            margin: 0 16px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(107, 66, 38, 0.07);
+          "
+        >
+          <div id="custList"></div>
+        </div>
+      </div>
+
+      <!-- ── 설정 탭 ── -->
+      <div class="screen" id="screen-settings">
+        <div class="header">
+          <h1>설정</h1>
+          <p>카페 운영 설정</p>
+        </div>
+
+        <div class="section-title">카페 정보</div>
+        <div class="settings-block">
+          <div class="settings-row" onclick="editSetting('cafeName')">
+            <span class="s-icon">☕</span>
+            <div class="s-text">
+              <h3>카페 이름</h3>
+              <p id="sCafeName">-</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="editSetting('stampsRequired')">
+            <span class="s-icon">🎯</span>
+            <div class="s-text">
+              <h3>쿠폰 완성 도장 수</h3>
+              <p id="sStamps">-</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="editSetting('reward')">
+            <span class="s-icon">🎁</span>
+            <div class="s-text">
+              <h3>쿠폰 보상 내용</h3>
+              <p id="sReward">-</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="editSetting('password')">
+            <span class="s-icon">🔐</span>
+            <div class="s-text">
+              <h3>비밀번호 변경</h3>
+              <p>사장님 모드 잠금 번호</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+        </div>
+
+        <div class="section-title">QR 손님 등록</div>
+        <div class="settings-block">
+          <div class="settings-row" onclick="editSetting('ownerPhone')">
+            <span class="s-icon">📱</span>
+            <div class="s-text">
+              <h3>사장님 전화번호</h3>
+              <p id="sOwnerPhone">문자 수신용 (예: 01012345678)</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="editSetting('registerUrl')">
+            <span class="s-icon">🔗</span>
+            <div class="s-text">
+              <h3>등록 페이지 URL</h3>
+              <p id="sRegisterUrl">Vercel 배포 후 주소 입력</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+        </div>
+        <div class="card" id="qrCard" style="display: none; text-align: center">
+          <div
+            style="
+              font-size: 14px;
+              font-weight: 700;
+              color: #6b4226;
+              margin-bottom: 12px;
+            "
+          >
+            📷 손님용 QR 코드
+          </div>
+          <div
+            id="qrCanvas"
+            style="display: flex; justify-content: center; margin-bottom: 12px"
+          ></div>
+          <div style="font-size: 11px; color: #999; line-height: 1.6">
+            카운터에 출력하거나 화면을 보여주세요<br />손님이 스캔하면 등록
+            페이지가 열려요
+          </div>
+          <button
+            class="btn btn-secondary"
+            style="margin-top: 12px"
+            onclick="refreshQR()"
+          >
+            QR 새로고침
+          </button>
+        </div>
+
+        <div class="section-title">데이터 관리</div>
+        <div class="settings-block">
+          <div class="settings-row" onclick="exportCSV()">
+            <span class="s-icon">📤</span>
+            <div class="s-text">
+              <h3>손님 목록 내보내기</h3>
+              <p>CSV 파일로 다운로드</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+          <div class="settings-row" onclick="confirmReset()">
+            <span class="s-icon">🗑️</span>
+            <div class="s-text">
+              <h3>전체 데이터 초기화</h3>
+              <p style="color: #e53935">모든 손님 정보 삭제</p>
+            </div>
+            <span class="s-arrow">›</span>
+          </div>
+        </div>
+
+        <div
+          style="
+            text-align: center;
+            padding: 24px 20px 10px;
+            color: #ccc;
+            font-size: 12px;
+          "
+        >
+          카페 도장쿠폰 v1.0 · Made with ☕
+        </div>
+      </div>
+    </div>
+    <!-- /#app -->
+
+    <!-- ════ TAB BAR ════ -->
+    <div class="tab-bar" id="tabBar">
+      <div class="tab-item active" onclick="showTab('home')" id="tab-home">
+        <span class="tab-icon">🏠</span><span>홈</span>
+      </div>
+      <div class="tab-item" onclick="showTab('customers')" id="tab-customers">
+        <span class="tab-icon">👥</span><span>손님</span>
+      </div>
+      <div class="tab-item" onclick="showTab('settings')" id="tab-settings">
+        <span class="tab-icon">⚙️</span><span>설정</span>
+      </div>
+    </div>
+
+    <!-- ════ MODALS ════ -->
+
+    <!-- 손님 상세 -->
+    <div class="overlay" id="custModal" onclick="bgClose(event, 'custModal')">
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div class="modal-title" id="custModalTitle">손님</div>
+          <button class="close-btn" onclick="closeModal('custModal')">✕</button>
+        </div>
+        <div id="custModalBody"></div>
+      </div>
+    </div>
+
+    <!-- 새 손님 등록 -->
+    <div
+      class="overlay"
+      id="newCustModal"
+      onclick="bgClose(event, 'newCustModal')"
+    >
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div class="modal-title">새 손님 등록</div>
+          <button class="close-btn" onclick="closeModal('newCustModal')">
+            ✕
+          </button>
+        </div>
+        <div class="input-group">
+          <label>이름 *</label>
+          <input type="text" id="newName" placeholder="손님 이름" />
+        </div>
+        <div class="input-group">
+          <label>전화번호 (선택)</label>
+          <input
+            type="tel"
+            id="newPhone"
+            placeholder="010-0000-0000"
+            inputmode="numeric"
+          />
+        </div>
+        <button class="btn btn-primary" onclick="addCustomer()">
+          등록 후 도장 찍기
+        </button>
+      </div>
+    </div>
+
+    <!-- 설정 편집 -->
+    <div
+      class="overlay"
+      id="settingModal"
+      onclick="bgClose(event, 'settingModal')"
+    >
+      <div class="modal">
+        <div class="modal-handle"></div>
+        <div class="modal-header">
+          <div class="modal-title" id="settingModalTitle">설정 변경</div>
+          <button class="close-btn" onclick="closeModal('settingModal')">
+            ✕
+          </button>
+        </div>
+        <div class="input-group">
+          <label id="sLabel1">값</label>
+          <input type="text" id="sInput1" placeholder="" />
+        </div>
+        <div class="input-group" id="sInput2Group" style="display: none">
+          <label id="sLabel2">확인</label>
+          <input type="text" id="sInput2" placeholder="" />
+        </div>
+        <button class="btn btn-primary" onclick="saveSetting()">저장</button>
+      </div>
+    </div>
+
+    <!-- 커스텀 확인 모달 -->
+    <div class="overlay" id="confirmModal">
+      <div class="modal" style="padding-bottom: 24px">
+        <div class="modal-handle"></div>
+        <p
+          id="confirmMsg"
+          style="
+            font-size: 16px;
+            font-weight: 600;
+            text-align: center;
+            padding: 8px 0 20px;
+            line-height: 1.5;
+          "
+        ></p>
+        <button class="btn btn-danger" id="confirmOkBtn">확인</button>
+        <button
+          class="btn btn-secondary"
+          onclick="closeModal('confirmModal')"
+          style="margin-top: 8px"
+        >
+          취소
+        </button>
+      </div>
+    </div>
+
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // ══════════════════════════════════════
+      //  DATA LAYER
+      // ══════════════════════════════════════
+      const DEFAULTS = {
+        settings: {
+          cafeName: '내 카페',
+          stampsRequired: 12,
+          reward: '아메리카노 1잔 무료',
+          password: '1234',
+          ownerPhone: '',
+          registerUrl: '',
+        },
+      };
+
+      function ls(key) {
+        try {
+          return JSON.parse(localStorage.getItem('cafe_' + key));
+        } catch (e) {
+          return null;
+        }
+      }
+      function lsSave(k, v) {
+        localStorage.setItem('cafe_' + k, JSON.stringify(v));
+      }
+
+      function loadAll() {
+        return {
+          settings: ls('settings') || Object.assign({}, DEFAULTS.settings),
+          customers: ls('customers') || [],
+          activity: ls('activity') || [],
+        };
+      }
+
+      let D = loadAll();
+      function save() {
+        lsSave('settings', D.settings);
+        lsSave('customers', D.customers);
+        lsSave('activity', D.activity);
+      }
+
+      // ══════════════════════════════════════
+      //  PIN
+      // ══════════════════════════════════════
+      let pin = '';
+
+      function pinInput(d) {
+        if (pin.length >= 4) return;
+        pin += d;
+        updateDots();
+        if (pin.length === 4) setTimeout(checkPin, 120);
+      }
+      function pinDelete() {
+        pin = pin.slice(0, -1);
+        updateDots();
+      }
+      function updateDots() {
+        for (var i = 0; i < 4; i++)
+          document
+            .getElementById('pd' + i)
+            .classList.toggle('filled', i < pin.length);
+      }
+      function checkPin() {
+        D = loadAll();
+        if (pin === D.settings.password) {
+          document.getElementById('pinScreen').style.display = 'none';
+          document.getElementById('app').style.display = 'block';
+          document.getElementById('tabBar').style.display = 'flex';
+          renderAll();
+        } else {
+          pin = '';
+          updateDots();
+          var err = document.getElementById('pinError');
+          var pad = document.getElementById('pinPad');
+          err.classList.add('show');
+          pad.classList.add('shake');
+          setTimeout(function () {
+            err.classList.remove('show');
+            pad.classList.remove('shake');
+          }, 1400);
+        }
+      }
+
+      // ══════════════════════════════════════
+      //  TABS
+      // ══════════════════════════════════════
+      function showTab(name) {
+        document.querySelectorAll('.screen').forEach(function (s) {
+          s.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-item').forEach(function (t) {
+          t.classList.remove('active');
+        });
+        document.getElementById('screen-' + name).classList.add('active');
+        document.getElementById('tab-' + name).classList.add('active');
+        D = loadAll();
+        if (name === 'home') renderHome();
+        if (name === 'customers') renderCustomers();
+        if (name === 'settings') renderSettings();
+      }
+
+      function renderAll() {
+        D = loadAll();
+        document.getElementById('pinCafeName').textContent =
+          D.settings.cafeName;
+        renderHome();
+        renderCustomers();
+        renderSettings();
+      }
+
+      // ══════════════════════════════════════
+      //  HOME
+      // ══════════════════════════════════════
+      function renderHome() {
+        document.getElementById('homeTitle').textContent =
+          '☕ ' + D.settings.cafeName;
+        document.getElementById('homeDate').textContent =
+          new Date().toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'short',
+          });
+
+        var today = todayStr();
+        document.getElementById('statToday').textContent = D.activity.filter(
+          function (a) {
+            return a.date === today && a.type === 'stamp';
+          },
+        ).length;
+        document.getElementById('statTotal').textContent = D.customers.length;
+        document.getElementById('statCoupons').textContent = D.activity.filter(
+          function (a) {
+            return a.type === 'coupon';
+          },
+        ).length;
+        document.getElementById('statStamps').textContent = D.activity.filter(
+          function (a) {
+            return a.type === 'stamp';
+          },
+        ).length;
+
+        var recent = D.activity.slice().reverse().slice(0, 6);
+        var el = document.getElementById('recentList');
+        if (!recent.length) {
+          el.innerHTML =
+            '<div class="empty-state"><div class="es-icon">☕</div><p>아직 도장 내역이 없어요<br>첫 손님을 등록해보세요!</p></div>';
+          return;
+        }
+        el.innerHTML = recent
+          .map(function (a) {
+            var c =
+              D.customers.find(function (x) {
+                return x.id === a.cid;
+              }) || {};
+            var isCoupon = a.type === 'coupon';
+            var time = new Date(a.ts).toLocaleTimeString('ko-KR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            });
+            return (
+              '<div class="act-row ' +
+              (isCoupon ? 'coupon' : '') +
+              '">' +
+              '<div class="act-icon">' +
+              (isCoupon ? '🎁' : '☕') +
+              '</div>' +
+              '<div class="act-info">' +
+              '<h4>' +
+              (c.name || '손님') +
+              '</h4>' +
+              '<p>' +
+              (isCoupon
+                ? '쿠폰 교환 완료'
+                : '도장 적립 · 현재 ' + a.stamps + '개') +
+              '</p>' +
+              '</div>' +
+              '<div class="act-time">' +
+              time +
+              '</div>' +
+              '</div>'
+            );
+          })
+          .join('');
+      }
+
+      // ══════════════════════════════════════
+      //  QUICK STAMP
+      // ══════════════════════════════════════
+      function quickStamp() {
+        var q = document.getElementById('quickInput').value.trim();
+        if (!q) {
+          toast('이름 또는 전화번호를 입력하세요');
+          return;
+        }
+        D = loadAll();
+        var ql = q.toLowerCase().replace(/-/g, '');
+        var hits = D.customers.filter(function (c) {
+          return (
+            c.name.toLowerCase().indexOf(ql) >= 0 ||
+            (c.phone && c.phone.replace(/-/g, '').indexOf(ql) >= 0)
+          );
+        });
+        if (!hits.length) {
+          toast('손님을 찾을 수 없어요 → 새 손님 등록');
+          openNewCustomer();
+          return;
+        }
+        if (hits.length === 1) {
+          openCustModal(hits[0].id);
+        } else {
+          showMultiMatch(hits);
+        }
+      }
+
+      function showMultiMatch(list) {
+        document.getElementById('custModalTitle').textContent = '손님 선택';
+        document.getElementById('custModalBody').innerHTML = list
+          .map(function (c) {
+            return (
+              '<div class="customer-row" style="border-radius:12px;margin-bottom:8px;border:2px solid #F0E8E0;" ' +
+              "onclick=\"closeModal('custModal');openCustModal('" +
+              c.id +
+              '\')">' +
+              '<div class="avatar">' +
+              c.name[0] +
+              '</div>' +
+              '<div class="cust-info"><h3>' +
+              c.name +
+              '</h3><p>' +
+              (c.phone || '번호 없음') +
+              ' · 도장 ' +
+              (c.stamps || 0) +
+              '개</p></div>' +
+              '</div>'
+            );
+          })
+          .join('');
+        openModal('custModal');
+      }
+
+      // ══════════════════════════════════════
+      //  CUSTOMER MODAL
+      // ══════════════════════════════════════
+      function openCustModal(cid) {
+        D = loadAll();
+        var c = D.customers.find(function (x) {
+          return x.id === cid;
+        });
+        if (!c) return;
+        var req = D.settings.stampsRequired;
+        var currentInCycle = c.stamps % req;
+        var canRedeem = c.stamps >= req;
+        var cols = req <= 5 ? req : req <= 8 ? 4 : 5;
+
+        var dots = '';
+        for (var i = 0; i < req; i++) {
+          var f = i < currentInCycle;
+          dots +=
+            '<div class="stamp-dot ' +
+            (f ? 'filled' : '') +
+            '">' +
+            (f ? '☕' : '') +
+            '</div>';
+        }
+
+        document.getElementById('custModalTitle').textContent = c.name;
+        document.getElementById('custModalBody').innerHTML =
+          '<div style="text-align:center;margin-bottom:18px;">' +
+          '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6B4226,#9B6542);' +
+          'color:white;font-size:28px;font-weight:800;display:flex;align-items:center;' +
+          'justify-content:center;margin:0 auto 10px;">' +
+          c.name[0] +
+          '</div>' +
+          '<div style="color:#666;font-size:14px;">' +
+          (c.phone || '전화번호 없음') +
+          '</div>' +
+          '<div style="margin-top:8px;">' +
+          '<span class="pill">총 방문 ' +
+          (c.visits || 0) +
+          '회</span> ' +
+          '<span class="pill">쿠폰 사용 ' +
+          (c.couponsUsed || 0) +
+          '회</span>' +
+          '</div>' +
+          '</div>' +
+          (canRedeem
+            ? '<div class="coupon-alert">' +
+              '<div class="ca-title">🎁 쿠폰 교환 가능!</div>' +
+              '<div class="ca-sub">' +
+              D.settings.reward +
+              '</div>' +
+              '</div>'
+            : '') +
+          '<div style="background:#F5F0EB;border-radius:16px;padding:16px;margin-bottom:16px;">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">' +
+          '<span style="font-size:13px;font-weight:700;color:#6B4226">현재 도장</span>' +
+          '<span style="font-size:14px;font-weight:800;color:#6B4226">' +
+          currentInCycle +
+          ' / ' +
+          req +
+          '</span>' +
+          '</div>' +
+          '<div class="progress-bar"><div class="progress-fill" style="width:' +
+          (currentInCycle / req) * 100 +
+          '%"></div></div>' +
+          '<div class="stamp-grid" style="grid-template-columns:repeat(' +
+          cols +
+          ',1fr);margin-top:12px;">' +
+          dots +
+          '</div>' +
+          '</div>' +
+          '<button class="btn btn-primary" onclick="addStamp(\'' +
+          cid +
+          '\')">☕ 도장 찍기</button>' +
+          (canRedeem
+            ? '<button class="btn btn-success" onclick="redeemCoupon(\'' +
+              cid +
+              '\')">🎁 쿠폰 교환하기</button>'
+            : '') +
+          (c.stamps > 0
+            ? '<button class="btn btn-secondary" onclick="removeStamp(\'' +
+              cid +
+              '\')">↩️ 도장 1개 취소</button>'
+            : '') +
+          '<button class="btn btn-danger" onclick="delCustomer(\'' +
+          cid +
+          '\')">손님 삭제</button>';
+
+        openModal('custModal');
+      }
+
+      function addStamp(cid) {
+        D = loadAll();
+        var i = D.customers.findIndex(function (x) {
+          return x.id === cid;
+        });
+        if (i < 0) return;
+        D.customers[i].stamps = (D.customers[i].stamps || 0) + 1;
+        D.customers[i].visits = (D.customers[i].visits || 0) + 1;
+        D.customers[i].lastVisit = new Date().toISOString();
+        var req = D.settings.stampsRequired;
+        var cur = D.customers[i].stamps % req;
+        D.activity.push({
+          id: uid(),
+          cid: cid,
+          type: 'stamp',
+          stamps: cur === 0 ? req : cur,
+          date: todayStr(),
+          ts: new Date().toISOString(),
+        });
+        save();
+        closeModal('custModal');
+        document.getElementById('quickInput').value = '';
+        var disp = D.customers[i].stamps % req;
+        toast(
+          '✅ 도장 찍었어요! (' + (disp === 0 ? req : disp) + '/' + req + ')',
+        );
+        D = loadAll();
+        renderHome();
+        renderCustomers();
+      }
+
+      function removeStamp(cid) {
+        showConfirm('도장 1개를 취소할까요?', function () {
+          D = loadAll();
+          var i = D.customers.findIndex(function (x) {
+            return x.id === cid;
+          });
+          if (i < 0) return;
+          if (D.customers[i].stamps <= 0) {
+            toast('취소할 도장이 없어요');
+            return;
+          }
+          D.customers[i].stamps -= 1;
+          var lastStampIdx = -1;
+          for (var j = D.activity.length - 1; j >= 0; j--) {
+            if (D.activity[j].cid === cid && D.activity[j].type === 'stamp') {
+              lastStampIdx = j;
+              break;
+            }
+          }
+          if (lastStampIdx >= 0) D.activity.splice(lastStampIdx, 1);
+          save();
+          closeModal('custModal');
+          toast('↩️ 도장 1개 취소됐어요');
+          D = loadAll();
+          renderHome();
+          renderCustomers();
+        });
+      }
+
+      function redeemCoupon(cid) {
+        D = loadAll();
+        var i = D.customers.findIndex(function (x) {
+          return x.id === cid;
+        });
+        if (i < 0) return;
+        var req = D.settings.stampsRequired;
+        if (D.customers[i].stamps < req) {
+          toast('도장이 부족해요');
+          return;
+        }
+        D.customers[i].stamps -= req;
+        D.customers[i].couponsUsed = (D.customers[i].couponsUsed || 0) + 1;
+        D.activity.push({
+          id: uid(),
+          cid: cid,
+          type: 'coupon',
+          date: todayStr(),
+          ts: new Date().toISOString(),
+        });
+        save();
+        closeModal('custModal');
+        toast('🎁 쿠폰 교환 완료!');
+        D = loadAll();
+        renderHome();
+        renderCustomers();
+      }
+
+      function delCustomer(cid) {
+        showConfirm('이 손님 정보를 삭제할까요?', function () {
+          D = loadAll();
+          D.customers = D.customers.filter(function (x) {
+            return x.id !== cid;
+          });
+          save();
+          closeModal('custModal');
+          toast('손님이 삭제되었어요');
+          D = loadAll();
+          renderAll();
+        });
+      }
+
+      // ══════════════════════════════════════
+      //  NEW CUSTOMER
+      // ══════════════════════════════════════
+      function openNewCustomer() {
+        document.getElementById('newName').value = '';
+        document.getElementById('newPhone').value = '';
+        openModal('newCustModal');
+      }
+      function addCustomer() {
+        var name = document.getElementById('newName').value.trim();
+        var phone = document.getElementById('newPhone').value.trim();
+        if (!name) {
+          toast('이름을 입력해주세요');
+          return;
+        }
+        D = loadAll();
+        if (
+          D.customers.some(function (c) {
+            return c.name === name;
+          })
+        ) {
+          toast('같은 이름의 손님이 이미 있어요');
+          return;
+        }
+        var nc = {
+          id: uid(),
+          name: name,
+          phone: phone,
+          stamps: 0,
+          visits: 0,
+          couponsUsed: 0,
+          createdAt: new Date().toISOString(),
+          lastVisit: null,
+        };
+        D.customers.push(nc);
+        save();
+        closeModal('newCustModal');
+        toast(name + ' 손님 등록 완료!');
+        D = loadAll();
+        renderCustomers();
+        renderHome();
+        openCustModal(nc.id);
+      }
+
+      // ══════════════════════════════════════
+      //  CUSTOMER LIST
+      // ══════════════════════════════════════
+      function renderCustomers() {
+        var searchEl = document.getElementById('custSearch');
+        var q = (searchEl ? searchEl.value : '')
+          .toLowerCase()
+          .replace(/-/g, '');
+        document.getElementById('custCount').textContent =
+          '전체 ' + D.customers.length + '명';
+        var list = D.customers.filter(function (c) {
+          if (!q) return true;
+          return (
+            c.name.toLowerCase().indexOf(q) >= 0 ||
+            (c.phone && c.phone.replace(/-/g, '').indexOf(q) >= 0)
+          );
+        });
+        list.sort(function (a, b) {
+          if (!a.lastVisit && !b.lastVisit)
+            return a.name.localeCompare(b.name, 'ko');
+          if (!a.lastVisit) return 1;
+          if (!b.lastVisit) return -1;
+          return new Date(b.lastVisit) - new Date(a.lastVisit);
+        });
+        var el = document.getElementById('custList');
+        if (!list.length) {
+          el.innerHTML =
+            '<div class="empty-state"><div class="es-icon">👤</div><p>' +
+            (q ? '검색 결과가 없어요' : '등록된 손님이 없어요') +
+            '</p></div>';
+          return;
+        }
+        var req = D.settings.stampsRequired;
+        el.innerHTML = list
+          .map(function (c) {
+            var cur = c.stamps % req;
+            var full = c.stamps >= req;
+            var lv = c.lastVisit
+              ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {
+                  month: 'short',
+                  day: 'numeric',
+                })
+              : '미방문';
+            return (
+              '<div class="customer-row" onclick="openCustModal(\'' +
+              c.id +
+              '\')">' +
+              '<div class="avatar">' +
+              c.name[0] +
+              '</div>' +
+              '<div class="cust-info"><h3>' +
+              c.name +
+              '</h3><p>' +
+              (c.phone || '번호 없음') +
+              ' · ' +
+              lv +
+              '</p></div>' +
+              '<span class="stamp-badge ' +
+              (full ? 'full' : '') +
+              '">' +
+              (full ? '🎁 쿠폰' : '☕ ' + cur + '/' + req) +
+              '</span>' +
+              '</div>'
+            );
+          })
+          .join('');
+      }
+
+      // ══════════════════════════════════════
+      //  SETTINGS
+      // ══════════════════════════════════════
+      function renderSettings() {
+        document.getElementById('sCafeName').textContent = D.settings.cafeName;
+        document.getElementById('sStamps').textContent =
+          D.settings.stampsRequired + '개';
+        document.getElementById('sReward').textContent = D.settings.reward;
+        document.getElementById('sOwnerPhone').textContent =
+          D.settings.ownerPhone || '문자 수신용 (예: 01012345678)';
+        document.getElementById('sRegisterUrl').textContent =
+          D.settings.registerUrl || 'Vercel 배포 후 주소 입력';
+        refreshQR();
+      }
+
+      function buildRegisterUrl() {
+        var base = D.settings.registerUrl;
+        if (!base) return '';
+        // 슬래시 처리
+        if (base.charAt(base.length - 1) !== '/') base += '/';
+        // 실제 배포 URL은 index.html 없이 루트로 서빙됨
+        var params = new URLSearchParams({
+          cafe: D.settings.cafeName,
+          phone: D.settings.ownerPhone,
+          req: String(D.settings.stampsRequired),
+        });
+        return base + '?' + params.toString();
+      }
+
+      function refreshQR() {
+        var url = buildRegisterUrl();
+        var card = document.getElementById('qrCard');
+        var container = document.getElementById('qrCanvas');
+        if (!url) {
+          card.style.display = 'none';
+          return;
+        }
+        card.style.display = 'block';
+        container.innerHTML = '';
+        if (window.QRCode) {
+          new QRCode(container, {
+            text: url,
+            width: 200,
+            height: 200,
+            colorDark: '#3E2010',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } else {
+          // QRCode 라이브러리 로드 후 재시도
+          loadQRLib(function () {
+            refreshQR();
+          });
+        }
+      }
+
+      function loadQRLib(cb) {
+        if (window.QRCode) {
+          cb();
+          return;
+        }
+        var s = document.createElement('script');
+        s.src =
+          'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        s.onload = cb;
+        document.head.appendChild(s);
+      }
+
+      var curKey = '';
+      function editSetting(key) {
+        curKey = key;
+        var titleMap = {
+          cafeName: '카페 이름',
+          stampsRequired: '쿠폰 도장 수',
+          reward: '쿠폰 보상',
+          password: '비밀번호 변경',
+          ownerPhone: '사장님 전화번호',
+          registerUrl: '등록 페이지 URL',
+        };
+        var labelMap = {
+          cafeName: '카페 이름',
+          stampsRequired: '도장 수 (1~20)',
+          reward: '쿠폰 보상 내용',
+          password: '새 비밀번호 (4자리)',
+          ownerPhone: '전화번호 (하이픈 없이, 예: 01012345678)',
+          registerUrl: 'Vercel/Netlify 배포 후 받은 URL',
+        };
+        document.getElementById('settingModalTitle').textContent =
+          titleMap[key];
+        document.getElementById('sLabel1').textContent = labelMap[key];
+        document.getElementById('sInput2Group').style.display = 'none';
+        var inp = document.getElementById('sInput1');
+        inp.type = 'text';
+        inp.inputMode = 'text';
+        inp.removeAttribute('maxlength');
+        if (key === 'password') {
+          inp.value = '';
+          inp.type = 'password';
+          inp.inputMode = 'numeric';
+          inp.maxLength = 4;
+          document.getElementById('sInput2Group').style.display = 'block';
+          document.getElementById('sLabel2').textContent = '비밀번호 확인';
+          document.getElementById('sInput2').value = '';
+          document.getElementById('sInput2').type = 'password';
+        } else if (key === 'stampsRequired') {
+          inp.value = D.settings.stampsRequired;
+          inp.type = 'number';
+          inp.inputMode = 'numeric';
+        } else if (key === 'ownerPhone') {
+          inp.value = D.settings.ownerPhone || '';
+          inp.type = 'tel';
+          inp.inputMode = 'numeric';
+        } else {
+          inp.value = D.settings[key] || '';
+        }
+        openModal('settingModal');
+      }
+      function saveSetting() {
+        var v1 = document.getElementById('sInput1').value.trim();
+        if (curKey === 'password') {
+          var v2 = document.getElementById('sInput2').value.trim();
+          if (!/^\d{4}$/.test(v1)) {
+            toast('4자리 숫자를 입력하세요');
+            return;
+          }
+          if (v1 !== v2) {
+            toast('비밀번호가 일치하지 않아요');
+            return;
+          }
+          D.settings.password = v1;
+        } else if (curKey === 'stampsRequired') {
+          var n = parseInt(v1);
+          if (isNaN(n) || n < 1 || n > 20) {
+            toast('1~20 사이 숫자를 입력하세요');
+            return;
+          }
+          D.settings.stampsRequired = n;
+        } else {
+          if (!v1) {
+            toast('값을 입력하세요');
+            return;
+          }
+          D.settings[curKey] = v1;
+        }
+        save();
+        closeModal('settingModal');
+        renderSettings();
+        renderHome();
+        if (curKey === 'registerUrl' || curKey === 'ownerPhone') {
+          loadQRLib(function () {
+            refreshQR();
+          });
+        }
+        toast('설정이 저장되었어요 ✅');
+      }
+
+      // ══════════════════════════════════════
+      //  EXPORT & RESET
+      // ══════════════════════════════════════
+      function exportCSV() {
+        D = loadAll();
+        var header = '이름,전화번호,누적도장,총방문,쿠폰사용,마지막방문';
+        var rows = D.customers.map(function (c) {
+          return (
+            '"' +
+            c.name +
+            '","' +
+            (c.phone || '') +
+            '",' +
+            (c.stamps || 0) +
+            ',' +
+            (c.visits || 0) +
+            ',' +
+            (c.couponsUsed || 0) +
+            ',' +
+            '"' +
+            (c.lastVisit
+              ? new Date(c.lastVisit).toLocaleDateString('ko-KR')
+              : '') +
+            '"'
+          );
+        });
+        var csv = '\uFEFF' + [header].concat(rows).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '카페손님_' + todayStr() + '.csv';
+        a.click();
+        toast('CSV 파일로 내보냈어요 📤');
+      }
+      function confirmReset() {
+        showConfirm(
+          '모든 손님 정보를 삭제할까요?\n되돌릴 수 없어요.',
+          function () {
+            D.customers = [];
+            D.activity = [];
+            save();
+            renderAll();
+            toast('데이터가 초기화되었어요');
+          },
+        );
+      }
+
+      // ══════════════════════════════════════
+      //  MODAL HELPERS
+      // ══════════════════════════════════════
+      function openModal(id) {
+        document.getElementById(id).classList.add('show');
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+      }
+      function bgClose(e, id) {
+        if (e.target === document.getElementById(id)) closeModal(id);
+      }
+
+      var _confirmCb = null;
+      function showConfirm(msg, callback) {
+        _confirmCb = callback;
+        document.getElementById('confirmMsg').textContent = msg;
+        document.getElementById('confirmOkBtn').onclick = function () {
+          closeModal('confirmModal');
+          if (_confirmCb) _confirmCb();
+        };
+        openModal('confirmModal');
+      }
+
+      // ══════════════════════════════════════
+      //  TOAST
+      // ══════════════════════════════════════
+      var toastTmr;
+      function toast(msg) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTmr);
+        toastTmr = setTimeout(function () {
+          el.classList.remove('show');
+        }, 2400);
+      }
+
+      // ══════════════════════════════════════
+      //  UTILS
+      // ══════════════════════════════════════
+      function uid() {
+        return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      }
+      function todayStr() {
+        return new Date().toISOString().slice(0, 10);
+      }
+
+      // ══════════════════════════════════════
+      //  INIT
+      // ══════════════════════════════════════
+      (function init() {
+        D = loadAll();
+        document.getElementById('pinCafeName').textContent =
+          D.settings.cafeName;
+        document.getElementById('pinScreen').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+        document.getElementById('tabBar').style.display = 'none';
+      })();
+    </script>
+  </body>
 </html>

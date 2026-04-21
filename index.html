@@ -29,89 +29,6 @@
         overflow-x: hidden;
       }
 
-      /* ── PIN SCREEN ── */
-      .pin-screen {
-        position: fixed;
-        inset: 0;
-        background: linear-gradient(160deg, #6b4226 0%, #3e2010 100%);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 999;
-      }
-      .pin-logo {
-        font-size: 56px;
-        margin-bottom: 12px;
-      }
-      .pin-screen h2 {
-        color: white;
-        font-size: 22px;
-        font-weight: 700;
-      }
-      .pin-screen p {
-        color: rgba(255, 255, 255, 0.65);
-        font-size: 14px;
-        margin-top: 6px;
-        margin-bottom: 40px;
-      }
-      .pin-dots {
-        display: flex;
-        gap: 18px;
-        margin-bottom: 36px;
-      }
-      .pin-dot {
-        width: 15px;
-        height: 15px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.3);
-        transition: background 0.15s;
-      }
-      .pin-dot.filled {
-        background: white;
-      }
-      .pin-pad {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-        width: 280px;
-      }
-      .pin-btn {
-        height: 76px;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.12);
-        color: white;
-        font-size: 26px;
-        font-weight: 400;
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.1s;
-      }
-      .pin-btn:active {
-        background: rgba(255, 255, 255, 0.28);
-      }
-      .pin-btn.del {
-        font-size: 22px;
-      }
-      .pin-btn.empty {
-        background: transparent;
-        cursor: default;
-        pointer-events: none;
-      }
-      .pin-error {
-        color: #ffb3a7;
-        font-size: 13px;
-        margin-top: 20px;
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .pin-error.show {
-        opacity: 1;
-      }
-
       /* ── APP SHELL ── */
       #app {
         display: none;
@@ -680,34 +597,6 @@
     </style>
   </head>
   <body>
-    <!-- ════════════ PIN SCREEN ════════════ -->
-    <div class="pin-screen" id="pinScreen">
-      <div class="pin-logo">☕</div>
-      <h2 id="pinCafeName">내 카페</h2>
-      <p>사장님 비밀번호 4자리</p>
-      <div class="pin-dots" id="pinDots">
-        <div class="pin-dot" id="pd0"></div>
-        <div class="pin-dot" id="pd1"></div>
-        <div class="pin-dot" id="pd2"></div>
-        <div class="pin-dot" id="pd3"></div>
-      </div>
-      <div class="pin-pad" id="pinPad">
-        <button class="pin-btn" onclick="pinInput('1')">1</button>
-        <button class="pin-btn" onclick="pinInput('2')">2</button>
-        <button class="pin-btn" onclick="pinInput('3')">3</button>
-        <button class="pin-btn" onclick="pinInput('4')">4</button>
-        <button class="pin-btn" onclick="pinInput('5')">5</button>
-        <button class="pin-btn" onclick="pinInput('6')">6</button>
-        <button class="pin-btn" onclick="pinInput('7')">7</button>
-        <button class="pin-btn" onclick="pinInput('8')">8</button>
-        <button class="pin-btn" onclick="pinInput('9')">9</button>
-        <button class="pin-btn empty"></button>
-        <button class="pin-btn" onclick="pinInput('0')">0</button>
-        <button class="pin-btn del" onclick="pinDelete()">⌫</button>
-      </div>
-      <div class="pin-error" id="pinError">비밀번호가 틀렸어요</div>
-    </div>
-
     <!-- ════════════ APP ════════════ -->
     <div id="app">
       <!-- ── 홈 탭 ── -->
@@ -1092,45 +981,6 @@ async function loadAll() {
 }
 
 // ══════════════════════════════════════
-//  PIN
-// ══════════════════════════════════════
-var pin = '';
-
-function pinInput(d) {
-  if (pin.length >= 4) return;
-  pin += d;
-  updateDots();
-  if (pin.length === 4) setTimeout(checkPin, 120);
-}
-function pinDelete() {
-  pin = pin.slice(0, -1);
-  updateDots();
-}
-function updateDots() {
-  for (var i = 0; i < 4; i++)
-    document.getElementById('pd'+i).classList.toggle('filled', i < pin.length);
-}
-function checkPin() {
-  if (pin === D.settings.password) {
-    document.getElementById('pinScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('tabBar').style.display = 'flex';
-    renderAll();
-  } else {
-    pin = '';
-    updateDots();
-    var err = document.getElementById('pinError');
-    var pad = document.getElementById('pinPad');
-    err.classList.add('show');
-    pad.classList.add('shake');
-    setTimeout(function() {
-      err.classList.remove('show');
-      pad.classList.remove('shake');
-    }, 1400);
-  }
-}
-
-// ══════════════════════════════════════
 //  TABS
 // ══════════════════════════════════════
 function showTab(name) {
@@ -1144,7 +994,6 @@ function showTab(name) {
 }
 
 function renderAll() {
-  document.getElementById('pinCafeName').textContent = D.settings.cafeName;
   renderHome();
   renderCustomers();
   renderSettings();
@@ -1598,11 +1447,10 @@ function todayStr() { return new Date().toISOString().slice(0,10); }
 //  INIT
 // ══════════════════════════════════════
 (async function init() {
-  document.getElementById('pinScreen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('tabBar').style.display = 'none';
   await loadAll();
-  document.getElementById('pinCafeName').textContent = D.settings.cafeName;
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tabBar').style.display = 'flex';
+  renderAll();
 })();
 
     </script>

@@ -222,7 +222,7 @@ export default function App() {
   // 새 손님 등록
   const doAddCustomer = async (name, phone) => {
     if (!name) { showToast('닉네임을 입력해주세요'); return }
-    const sameName  = D.customers.find(c => c.name === name)닉네임
+    const sameName  = D.customers.find(c => c.name === name)
     if (sameName) {
       const samePhone = phone && sameName.phone && sameName.phone.replace(/-/g,'').endsWith(phone.replace(/-/g,''))
       if (samePhone) { showToast('이미 등록된 손님이에요 (이름+번호 동일)'); return }

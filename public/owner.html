@@ -261,8 +261,8 @@
       var cafeName = params.get('cafe') || '카페 멤버십';
       var stampsReq = parseInt(params.get('req') || '12');
 
-      document.getElementById('cafeNameEl').textContent = cafeName + ' 멤버십';
-      document.title = cafeName + ' 멤버십 등록';
+      document.getElementById('cafeNameEl').textContent = cafeName;
+      document.title = cafeName + ' 등록';
 
       function buildStampPreview() {
         var el = document.getElementById('stampPreview');

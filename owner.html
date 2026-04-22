@@ -1,206 +1,304 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#6B4226">
-<title>멤버십 등록</title>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-body {
-  font-family: -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(160deg, #6B4226 0%, #3E2010 100%);
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px 20px;
-}
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="theme-color" content="#6B4226" />
+    <title>멤버십 등록</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        font-family:
+          -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(160deg, #6b4226 0%, #3e2010 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px 20px;
+      }
 
-.card {
-  background: white;
-  border-radius: 28px;
-  padding: 36px 28px 32px;
-  width: 100%; max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-}
+      .card {
+        background: white;
+        border-radius: 28px;
+        padding: 36px 28px 32px;
+        width: 100%;
+        max-width: 400px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      }
 
-.logo { font-size: 52px; text-align: center; margin-bottom: 10px; }
-.cafe-name {
-  font-size: 22px; font-weight: 800;
-  text-align: center; color: #2C1810;
-  margin-bottom: 6px;
-}
-.subtitle {
-  font-size: 14px; color: #999;
-  text-align: center; margin-bottom: 32px;
-  line-height: 1.5;
-}
+      .logo {
+        font-size: 52px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      .cafe-name {
+        font-size: 22px;
+        font-weight: 800;
+        text-align: center;
+        color: #2c1810;
+        margin-bottom: 6px;
+      }
+      .subtitle {
+        font-size: 14px;
+        color: #999;
+        text-align: center;
+        margin-bottom: 32px;
+        line-height: 1.5;
+      }
 
-.input-group { margin-bottom: 16px; }
-.input-group label {
-  font-size: 13px; color: #666;
-  margin-bottom: 7px; display: block; font-weight: 700;
-}
-.input-group input {
-  width: 100%; padding: 15px 16px;
-  border: 2px solid #E8DDD4; border-radius: 14px;
-  font-size: 17px; outline: none;
-  transition: border-color 0.2s;
-  background: white; color: #2C1810;
-  -webkit-appearance: none;
-}
-.input-group input:focus { border-color: #6B4226; }
+      .input-group {
+        margin-bottom: 16px;
+      }
+      .input-group label {
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 7px;
+        display: block;
+        font-weight: 700;
+      }
+      .input-group input {
+        width: 100%;
+        padding: 15px 16px;
+        border: 2px solid #e8ddd4;
+        border-radius: 14px;
+        font-size: 17px;
+        outline: none;
+        transition: border-color 0.2s;
+        background: white;
+        color: #2c1810;
+        -webkit-appearance: none;
+      }
+      .input-group input:focus {
+        border-color: #6b4226;
+      }
 
-.btn {
-  width: 100%; padding: 16px;
-  border-radius: 14px; border: none;
-  font-size: 17px; font-weight: 800;
-  cursor: pointer; margin-top: 8px;
-  transition: transform 0.1s, opacity 0.15s;
-}
-.btn:active { transform: scale(0.97); opacity: 0.88; }
-.btn-primary { background: #6B4226; color: white; }
+      .btn {
+        width: 100%;
+        padding: 16px;
+        border-radius: 14px;
+        border: none;
+        font-size: 17px;
+        font-weight: 800;
+        cursor: pointer;
+        margin-top: 8px;
+        transition:
+          transform 0.1s,
+          opacity 0.15s;
+      }
+      .btn:active {
+        transform: scale(0.97);
+        opacity: 0.88;
+      }
+      .btn-primary {
+        background: #6b4226;
+        color: white;
+      }
 
-.notice {
-  font-size: 12px; color: #BBB;
-  text-align: center; margin-top: 16px;
-  line-height: 1.6;
-}
+      .notice {
+        font-size: 12px;
+        color: #bbb;
+        text-align: center;
+        margin-top: 16px;
+        line-height: 1.6;
+      }
 
-/* Done screen */
-.done-screen { text-align: center; padding: 8px 0; }
-.done-icon { font-size: 72px; margin-bottom: 16px; }
-.done-title { font-size: 24px; font-weight: 800; color: #2C1810; margin-bottom: 10px; }
-.done-sub {
-  font-size: 15px; color: #666;
-  line-height: 1.7; margin-bottom: 28px;
-}
-.stamp-preview {
-  display: flex; justify-content: center; gap: 8px;
-  flex-wrap: wrap; margin-bottom: 24px;
-}
-.stamp-dot-preview {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: #EDE4DC;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 16px;
-}
-.stamp-dot-preview.first { background: #6B4226; }
-.done-tip {
-  background: #F5F0EB; border-radius: 14px;
-  padding: 14px 16px; font-size: 13px; color: #6B4226;
-  font-weight: 600;
-}
+      /* Done screen */
+      .done-screen {
+        text-align: center;
+        padding: 8px 0;
+      }
+      .done-icon {
+        font-size: 72px;
+        margin-bottom: 16px;
+      }
+      .done-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #2c1810;
+        margin-bottom: 10px;
+      }
+      .done-sub {
+        font-size: 15px;
+        color: #666;
+        line-height: 1.7;
+        margin-bottom: 28px;
+      }
+      .stamp-preview {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+      }
+      .stamp-dot-preview {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #ede4dc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .stamp-dot-preview.first {
+        background: #6b4226;
+      }
+      .done-tip {
+        background: #f5f0eb;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-size: 13px;
+        color: #6b4226;
+        font-weight: 600;
+      }
 
-/* Error toast */
-.toast {
-  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-  background: rgba(30,15,5,0.88); color: white;
-  padding: 11px 22px; border-radius: 24px;
-  font-size: 14px; z-index: 100; opacity: 0;
-  transition: opacity 0.25s; pointer-events: none;
-  white-space: nowrap; font-weight: 500;
-}
-.toast.show { opacity: 1; }
-</style>
-</head>
-<body>
+      /* Error toast */
+      .toast {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(30, 15, 5, 0.88);
+        color: white;
+        padding: 11px 22px;
+        border-radius: 24px;
+        font-size: 14px;
+        z-index: 100;
+        opacity: 0;
+        transition: opacity 0.25s;
+        pointer-events: none;
+        white-space: nowrap;
+        font-weight: 500;
+      }
+      .toast.show {
+        opacity: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card" id="mainCard">
+      <!-- ── 등록 폼 ── -->
+      <div id="formView">
+        <div class="logo">☕</div>
+        <div class="cafe-name" id="cafeNameEl">카페 멤버십</div>
+        <div class="subtitle">
+          도장 쿠폰을 시작해보세요!<br />닉네임과 전화번호 뒷자리만 입력하면
+          돼요.
+        </div>
 
-<div class="card" id="mainCard">
+        <div class="input-group">
+          <label>닉네임 *</label>
+          <input
+            type="text"
+            id="regName"
+            placeholder="홍길동"
+            autocomplete="name"
+            onkeydown="
+              if (event.key === 'Enter')
+                document.getElementById('regPhone').focus();
+            "
+          />
+        </div>
+        <div class="input-group">
+          <label>전화번호 뒷 4자리 *</label>
+          <input
+            type="tel"
+            id="regPhone"
+            placeholder="1234"
+            maxlength="4"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            onkeydown="if (event.key === 'Enter') submitReg();"
+          />
+        </div>
 
-  <!-- ── 등록 폼 ── -->
-  <div id="formView">
-    <div class="logo">☕</div>
-    <div class="cafe-name" id="cafeNameEl">카페 멤버십</div>
-    <div class="subtitle">도장 쿠폰을 시작해보세요!<br>이름과 전화번호 뒷자리만 입력하면 돼요.</div>
+        <button class="btn btn-primary" onclick="submitReg()">
+          등록하기 →
+        </button>
 
-    <div class="input-group">
-      <label>이름 *</label>
-      <input type="text" id="regName" placeholder="홍길동"
-        autocomplete="name"
-        onkeydown="if(event.key==='Enter')document.getElementById('regPhone').focus()">
-    </div>
-    <div class="input-group">
-      <label>전화번호 뒷 4자리 *</label>
-      <input type="tel" id="regPhone" placeholder="1234"
-        maxlength="4" inputmode="numeric" pattern="[0-9]*"
-        onkeydown="if(event.key==='Enter')submitReg()">
-    </div>
-
-    <button class="btn btn-primary" onclick="submitReg()">등록하기 →</button>
-
-    <div class="notice">
-      수집된 정보는 도장쿠폰 운영 목적으로만 사용됩니다.<br>
-      전화번호 뒷자리는 본인 확인용으로만 쓰여요.
-    </div>
-  </div>
-
-  <!-- ── 완료 화면 ── -->
-  <div id="doneView" style="display:none">
-    <div class="done-screen">
-      <div class="done-icon">🎉</div>
-      <div class="done-title">등록 완료!</div>
-      <div class="done-sub">
-        환영해요, <strong id="doneNameEl"></strong> 님!<br>
-        카운터에서 첫 도장을 받으세요.
+        <div class="notice">
+          수집된 정보는 도장쿠폰 운영 목적으로만 사용됩니다.<br />
+          전화번호 뒷자리는 본인 확인용으로만 쓰여요.
+        </div>
       </div>
-      <div class="stamp-preview" id="stampPreview"></div>
-      <div class="done-tip">☕ 도장을 다 모으면 쿠폰으로 교환할 수 있어요!</div>
+
+      <!-- ── 완료 화면 ── -->
+      <div id="doneView" style="display: none">
+        <div class="done-screen">
+          <div class="done-icon">🎉</div>
+          <div class="done-title">등록 완료!</div>
+          <div class="done-sub">
+            환영해요, <strong id="doneNameEl"></strong> 님!<br />
+            카운터에서 첫 도장을 받으세요.
+          </div>
+          <div class="stamp-preview" id="stampPreview"></div>
+          <div class="done-tip">
+            ☕ 도장을 다 모으면 쿠폰으로 교환할 수 있어요!
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-</div>
+    <div class="toast" id="toast"></div>
 
-<div class="toast" id="toast"></div>
+    <script>
+      // URL 파라미터 읽기
+      var params = new URLSearchParams(location.search);
+      var cafeName  = params.get('cafe')  || '카페 멤버십';
+      var ownerPhone = params.get('phone') || '';
+      var stampsReq = parseInt(params.get('req') || '12');
 
-<script>
-// URL 파라미터 읽기
-var params = new URLSearchParams(location.search);
-var cafeName  = params.get('cafe')  || '카페 멤버십';
-var ownerPhone = params.get('phone') || '';
-var stampsReq = parseInt(params.get('req') || '12');
+      // 카페 닉네임 표시
+      document.getElementById('cafeNameEl').textContent = cafeName + ' 멤버십';
+      document.title = cafeName + ' 멤버십 등록';
 
-// 카페 이름 표시
-document.getElementById('cafeNameEl').textContent = cafeName + ' 멤버십';
-document.title = cafeName + ' 멤버십 등록';
+      // 완료 화면 도장 미리보기 생성
+      function buildStampPreview() {
+        var el = document.getElementById('stampPreview');
+        var show = Math.min(stampsReq, 10); // 최대 10개 표시
+        var html = '';
+        for (var i = 0; i < show; i++) {
+          html += '<div class="stamp-dot-preview ' + (i === 0 ? 'first' : '') + '">' +
+            (i === 0 ? '☕' : '') + '</div>';
+        }
+        if (stampsReq > 10) html += '<span style="font-size:13px;color:#999;align-self:center">... ' + stampsReq + '개</span>';
+        el.innerHTML = html;
+      }
+      buildStampPreview();
 
-// 완료 화면 도장 미리보기 생성
-function buildStampPreview() {
-  var el = document.getElementById('stampPreview');
-  var show = Math.min(stampsReq, 10); // 최대 10개 표시
-  var html = '';
-  for (var i = 0; i < show; i++) {
-    html += '<div class="stamp-dot-preview ' + (i === 0 ? 'first' : '') + '">' +
-      (i === 0 ? '☕' : '') + '</div>';
-  }
-  if (stampsReq > 10) html += '<span style="font-size:13px;color:#999;align-self:center">... ' + stampsReq + '개</span>';
-  el.innerHTML = html;
-}
-buildStampPreview();
+      function submitReg() {
+        var name  = document.getElementById('regName').value.trim();
+        var phone = document.getElementById('regPhone').value.trim();
 
-function submitReg() {
-  var name  = document.getElementById('regName').value.trim();
-  var phone = document.getElementById('regPhone').value.trim();
+        if (!name) { showToast('닉네임을 입력해주세요'); return; }
+        if (!/^\d{4}$/.test(phone)) { showToast('번호 뒷 4자리를 입력해주세요'); return; }
 
-  if (!name) { showToast('이름을 입력해주세요'); return; }
-  if (!/^\d{4}$/.test(phone)) { showToast('번호 뒷 4자리를 입력해주세요'); return; }
+        // 완료 화면 전환
+        document.getElementById('doneNameEl').textContent = name;
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('doneView').style.display = 'block';
+      , 800);
+        }
+      }
 
-  // 완료 화면 전환
-  document.getElementById('doneNameEl').textContent = name;
-  document.getElementById('formView').style.display = 'none';
-  document.getElementById('doneView').style.display = 'block';
-, 800);
-  }
-}
-
-var toastTmr;
-function showToast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTmr);
-  toastTmr = setTimeout(function(){ el.classList.remove('show'); }, 2400);
-}
-</script>
-</body>
+      var toastTmr;
+      function showToast(msg) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTmr);
+        toastTmr = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+      }
+    </script>
+  </body>
 </html>

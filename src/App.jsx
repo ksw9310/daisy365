@@ -77,7 +77,7 @@ export default function App() {
 
   // 손님 검색
   const handleStamp = (q) => {
-    if (!q) { showToast('이름 또는 전화번호를 입력하세요'); return }
+    if (!q) { showToast('닉네임 또는 전화번호를 입력하세요'); return }
     const ql   = q.toLowerCase().replace(/-/g, '')
     const hits = D.customers.filter(c =>
       c.name.toLowerCase().includes(ql) ||
@@ -221,8 +221,13 @@ export default function App() {
 
   // 새 손님 등록
   const doAddCustomer = async (name, phone) => {
-    if (!name) { showToast('이름을 입력해주세요'); return }
-    if (D.customers.some(c => c.name === name)) { showToast('같은 이름의 손님이 이미 있어요'); return }
+    if (!name) { showToast('닉네임을 입력해주세요'); return }
+    const sameName  = D.customers.find(c => c.name === name)닉네임
+    if (sameName) {
+      const samePhone = phone && sameName.phone && sameName.phone.replace(/-/g,'').endsWith(phone.replace(/-/g,''))
+      if (samePhone) { showToast('이미 등록된 손님이에요 (이름+번호 동일)'); return }
+      showToast('같은 이름의 손님이 이미 있어요'); return
+    }
     const nc = {
       id: uid(), name, phone,
       stamps: 0, visits: 0, couponsUsed: 0,
@@ -269,7 +274,7 @@ export default function App() {
     } catch (e) {
       console.error(e)
       showToast('오류: ' + (e.message || '저장 실패'))
-    }
+    }닉네임
   }
 
   // CSV 내보내기

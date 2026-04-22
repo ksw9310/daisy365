@@ -628,7 +628,7 @@
         <div class="section-title">☕ 도장 찍기</div>
         <div class="card">
           <div class="input-group" style="margin-bottom: 10px">
-            <label>손님 이름 또는 전화번호 뒷 4자리</label>
+            <label>손님 닉네임 또는 전화번호 뒷 4자리</label>
             <input
               type="text"
               id="quickInput"
@@ -669,7 +669,7 @@
             class="search-input"
             type="text"
             id="custSearch"
-            placeholder="이름 또는 전화번호 검색..."
+            placeholder="닉네임 또는 전화번호 검색..."
             oninput="renderCustomers()"
           />
         </div>
@@ -698,7 +698,7 @@
           <div class="settings-row" onclick="editSetting('cafeName')">
             <span class="s-icon">☕</span>
             <div class="s-text">
-              <h3>카페 이름</h3>
+              <h3>카페 닉네임</h3>
               <p id="sCafeName">-</p>
             </div>
             <span class="s-arrow">›</span>
@@ -844,8 +844,8 @@
           </button>
         </div>
         <div class="input-group">
-          <label>이름 *</label>
-          <input type="text" id="newName" placeholder="손님 이름" />
+          <label>닉네임 *</label>
+          <input type="text" id="newName" placeholder="손님 닉네임" />
         </div>
         <div class="input-group">
           <label>전화번호 (선택)</label>
@@ -918,541 +918,540 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-// ══════════════════════════════════════
-//  SUPABASE
-// ══════════════════════════════════════
-var SUPABASE_URL = 'https://vaepdtquinftazrcfsdi.supabase.co';
-var SUPABASE_KEY = 'sb_publishable_ImT7BXe37H-_GqPHDZscDg__JM2JBpU';
-var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ══════════════════════════════════════
+      //  SUPABASE
+      // ══════════════════════════════════════
+      var SUPABASE_URL = 'https://vaepdtquinftazrcfsdi.supabase.co';
+      var SUPABASE_KEY = 'sb_publishable_ImT7BXe37H-_GqPHDZscDg__JM2JBpU';
+      var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ══════════════════════════════════════
-//  DATA LAYER
-// ══════════════════════════════════════
-var DEFAULTS = {
-  settings: {
-    cafeName: '내 카페',
-    stampsRequired: 12,
-    reward: '아메리카노 1잔 무료',
-    password: '1234',
-    registerUrl: ''
-  }
-};
+      // ══════════════════════════════════════
+      //  DATA LAYER
+      // ══════════════════════════════════════
+      var DEFAULTS = {
+        settings: {
+          cafeName: '내 카페',
+          stampsRequired: 12,
+          reward: '아메리카노 1잔 무료',
+          password: '1234',
+          registerUrl: ''
+        }
+      };
 
-var D = { settings: Object.assign({}, DEFAULTS.settings), customers: [], activity: [] };
+      var D = { settings: Object.assign({}, DEFAULTS.settings), customers: [], activity: [] };
 
-async function loadAll() {
-  var results = await Promise.all([
-    sb.from('settings').select('*'),
-    sb.from('customers').select('*'),
-    sb.from('activity').select('*').order('created_at', { ascending: true })
-  ]);
-  var sRows = results[0].data || [];
-  var cRows = results[1].data || [];
-  var aRows = results[2].data || [];
+      async function loadAll() {
+        var results = await Promise.all([
+          sb.from('settings').select('*'),
+          sb.from('customers').select('*'),
+          sb.from('activity').select('*').order('created_at', { ascending: true })
+        ]);
+        var sRows = results[0].data || [];
+        var cRows = results[1].data || [];
+        var aRows = results[2].data || [];
 
-  D.settings = Object.assign({}, DEFAULTS.settings);
-  sRows.forEach(function(r) {
-    D.settings[r.key] = r.key === 'stampsRequired' ? parseInt(r.value) : r.value;
-  });
+        D.settings = Object.assign({}, DEFAULTS.settings);
+        sRows.forEach(function(r) {
+          D.settings[r.key] = r.key === 'stampsRequired' ? parseInt(r.value) : r.value;
+        });
 
-  D.customers = cRows.map(function(c) {
-    return {
-      id: c.id,
-      name: c.name,
-      phone: c.phone || '',
-      stamps: c.stamps || 0,
-      visits: c.visits || 0,
-      couponsUsed: c.coupons_used || 0,
-      createdAt: c.created_at,
-      lastVisit: c.last_visit || null
-    };
-  });
+        D.customers = cRows.map(function(c) {
+          return {
+            id: c.id,
+            name: c.name,
+            phone: c.phone || '',
+            stamps: c.stamps || 0,
+            visits: c.visits || 0,
+            couponsUsed: c.coupons_used || 0,
+            createdAt: c.created_at,
+            lastVisit: c.last_visit || null
+          };
+        });
 
-  D.activity = aRows.map(function(a) {
-    return {
-      id: a.id,
-      cid: a.customer_id,
-      type: a.type,
-      stamps: a.stamps || 0,
-      date: a.date,
-      ts: a.created_at
-    };
-  });
-}
-
-// ══════════════════════════════════════
-//  TABS
-// ══════════════════════════════════════
-function showTab(name) {
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.querySelectorAll('.tab-item').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('screen-'+name).classList.add('active');
-  document.getElementById('tab-'+name).classList.add('active');
-  if (name === 'home')      renderHome();
-  if (name === 'customers') renderCustomers();
-  if (name === 'settings')  renderSettings();
-}
-
-function renderAll() {
-  renderHome();
-  renderCustomers();
-  renderSettings();
-}
-
-// ══════════════════════════════════════
-//  HOME
-// ══════════════════════════════════════
-function renderHome() {
-  document.getElementById('homeTitle').textContent = '☕ ' + D.settings.cafeName;
-  document.getElementById('homeDate').textContent =
-    new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
-
-  var today = todayStr();
-  document.getElementById('statToday').textContent   = D.activity.filter(function(a){ return a.date===today && a.type==='stamp'; }).length;
-  document.getElementById('statTotal').textContent   = D.customers.length;
-  document.getElementById('statCoupons').textContent = D.activity.filter(function(a){ return a.type==='coupon'; }).length;
-  document.getElementById('statStamps').textContent  = D.activity.filter(function(a){ return a.type==='stamp'; }).length;
-
-  var recent = D.activity.slice().reverse().slice(0, 6);
-  var el = document.getElementById('recentList');
-  if (\!recent.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">☕</div><p>아직 도장 내역이 없어요<br>첫 손님을 등록해보세요\!</p></div>';
-    return;
-  }
-  el.innerHTML = recent.map(function(a) {
-    var c = D.customers.find(function(x){ return x.id===a.cid; }) || {};
-    var isCoupon = a.type === 'coupon';
-    var time = new Date(a.ts).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
-    return '<div class="act-row '+(isCoupon?'coupon':'')+'">'+
-      '<div class="act-icon">'+(isCoupon?'🎁':'☕')+'</div>'+
-      '<div class="act-info">'+
-        '<h4>'+(c.name||'손님')+'</h4>'+
-        '<p>'+(isCoupon ? '쿠폰 교환 완료' : '도장 적립 · 현재 '+a.stamps+'개')+'</p>'+
-      '</div>'+
-      '<div class="act-time">'+time+'</div>'+
-    '</div>';
-  }).join('');
-}
-
-// ══════════════════════════════════════
-//  QUICK STAMP
-// ══════════════════════════════════════
-function quickStamp() {
-  var q = document.getElementById('quickInput').value.trim();
-  if (\!q) { toast('이름 또는 전화번호를 입력하세요'); return; }
-  var ql = q.toLowerCase().replace(/-/g,'');
-  var hits = D.customers.filter(function(c) {
-    return c.name.toLowerCase().indexOf(ql) >= 0 ||
-      (c.phone && c.phone.replace(/-/g,'').indexOf(ql) >= 0);
-  });
-  if (\!hits.length) {
-    toast('손님을 찾을 수 없어요 → 새 손님 등록');
-    openNewCustomer();
-    return;
-  }
-  if (hits.length === 1) {
-    openCustModal(hits[0].id);
-  } else {
-    showMultiMatch(hits);
-  }
-}
-
-function showMultiMatch(list) {
-  document.getElementById('custModalTitle').textContent = '손님 선택';
-  document.getElementById('custModalBody').innerHTML = list.map(function(c) {
-    return '<div class="customer-row" style="border-radius:12px;margin-bottom:8px;border:2px solid #F0E8E0;" '+
-      'onclick="closeModal(\'custModal\');openCustModal(\''+c.id+'\')">'+
-      '<div class="avatar">'+c.name[0]+'</div>'+
-      '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · 도장 '+(c.stamps||0)+'개</p></div>'+
-    '</div>';
-  }).join('');
-  openModal('custModal');
-}
-
-// ══════════════════════════════════════
-//  CUSTOMER MODAL
-// ══════════════════════════════════════
-function openCustModal(cid) {
-  var c = D.customers.find(function(x){ return x.id===cid; });
-  if (\!c) return;
-  var req = D.settings.stampsRequired;
-  var currentInCycle = c.stamps % req;
-  var canRedeem = c.stamps >= req;
-  var cols = req <= 5 ? req : (req <= 8 ? 4 : 5);
-
-  var dots = '';
-  for (var i = 0; i < req; i++) {
-    var f = i < currentInCycle;
-    dots += '<div class="stamp-dot '+(f?'filled':'')+'">'+(f?'☕':'')+'</div>';
-  }
-
-  document.getElementById('custModalTitle').textContent = c.name;
-  document.getElementById('custModalBody').innerHTML =
-    '<div style="text-align:center;margin-bottom:18px;">'+
-      '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6B4226,#9B6542);'+
-        'color:white;font-size:28px;font-weight:800;display:flex;align-items:center;'+
-        'justify-content:center;margin:0 auto 10px;">'+c.name[0]+'</div>'+
-      '<div style="color:#666;font-size:14px;">'+(c.phone||'전화번호 없음')+'</div>'+
-      '<div style="margin-top:8px;">'+
-        '<span class="pill">총 방문 '+(c.visits||0)+'회</span> '+
-        '<span class="pill">쿠폰 사용 '+(c.couponsUsed||0)+'회</span>'+
-      '</div>'+
-    '</div>'+
-    (canRedeem ?
-      '<div class="coupon-alert">'+
-        '<div class="ca-title">🎁 쿠폰 교환 가능\!</div>'+
-        '<div class="ca-sub">'+D.settings.reward+'</div>'+
-      '</div>' : '')+
-    '<div style="background:#F5F0EB;border-radius:16px;padding:16px;margin-bottom:16px;">'+
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
-        '<span style="font-size:13px;font-weight:700;color:#6B4226">현재 도장</span>'+
-        '<span style="font-size:14px;font-weight:800;color:#6B4226">'+currentInCycle+' / '+req+'</span>'+
-      '</div>'+
-      '<div class="progress-bar"><div class="progress-fill" style="width:'+((currentInCycle/req)*100)+'%"></div></div>'+
-      '<div class="stamp-grid" style="grid-template-columns:repeat('+cols+',1fr);margin-top:12px;">'+dots+'</div>'+
-    '</div>'+
-    '<button class="btn btn-primary" onclick="addStamp(\''+cid+'\')">☕ 도장 찍기</button>'+
-    (canRedeem ? '<button class="btn btn-success" onclick="redeemCoupon(\''+cid+'\')">🎁 쿠폰 교환하기</button>' : '')+
-    (c.stamps > 0 ? '<button class="btn btn-secondary" onclick="removeStamp(\''+cid+'\')">↩️ 도장 1개 취소</button>' : '')+
-    '<button class="btn btn-danger" onclick="delCustomer(\''+cid+'\')">손님 삭제</button>';
-
-  openModal('custModal');
-}
-
-async function addStamp(cid) {
-  var i = D.customers.findIndex(function(x){ return x.id===cid; });
-  if (i < 0) return;
-  D.customers[i].stamps  = (D.customers[i].stamps  || 0) + 1;
-  D.customers[i].visits  = (D.customers[i].visits  || 0) + 1;
-  D.customers[i].lastVisit = new Date().toISOString();
-  var req = D.settings.stampsRequired;
-  var cur = D.customers[i].stamps % req;
-  var actId = uid();
-  var stamps = cur === 0 ? req : cur;
-  D.activity.push({ id: actId, cid: cid, type: 'stamp', stamps: stamps, date: todayStr(), ts: new Date().toISOString() });
-
-  await Promise.all([
-    sb.from('customers').upsert({
-      id: cid,
-      name: D.customers[i].name,
-      phone: D.customers[i].phone,
-      stamps: D.customers[i].stamps,
-      visits: D.customers[i].visits,
-      coupons_used: D.customers[i].couponsUsed,
-      last_visit: D.customers[i].lastVisit
-    }),
-    sb.from('activity').insert({
-      id: actId, customer_id: cid, type: 'stamp',
-      stamps: stamps, date: todayStr()
-    })
-  ]);
-
-  closeModal('custModal');
-  document.getElementById('quickInput').value = '';
-  var disp = D.customers[i].stamps % req;
-  toast('✅ 도장 찍었어요\! (' + (disp === 0 ? req : disp) + '/' + req + ')');
-  renderHome(); renderCustomers();
-}
-
-function removeStamp(cid) {
-  showConfirm('도장 1개를 취소할까요?', async function() {
-    var i = D.customers.findIndex(function(x){ return x.id===cid; });
-    if (i < 0) return;
-    if (D.customers[i].stamps <= 0) { toast('취소할 도장이 없어요'); return; }
-    D.customers[i].stamps -= 1;
-    var lastActId = null;
-    for (var j = D.activity.length - 1; j >= 0; j--) {
-      if (D.activity[j].cid === cid && D.activity[j].type === 'stamp') {
-        lastActId = D.activity[j].id;
-        D.activity.splice(j, 1);
-        break;
+        D.activity = aRows.map(function(a) {
+          return {
+            id: a.id,
+            cid: a.customer_id,
+            type: a.type,
+            stamps: a.stamps || 0,
+            date: a.date,
+            ts: a.created_at
+          };
+        });
       }
-    }
 
-    await sb.from('customers').update({ stamps: D.customers[i].stamps }).eq('id', cid);
-    if (lastActId) await sb.from('activity').delete().eq('id', lastActId);
+      // ══════════════════════════════════════
+      //  TABS
+      // ══════════════════════════════════════
+      function showTab(name) {
+        document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+        document.querySelectorAll('.tab-item').forEach(function(t){ t.classList.remove('active'); });
+        document.getElementById('screen-'+name).classList.add('active');
+        document.getElementById('tab-'+name).classList.add('active');
+        if (name === 'home')      renderHome();
+        if (name === 'customers') renderCustomers();
+        if (name === 'settings')  renderSettings();
+      }
 
-    closeModal('custModal');
-    toast('↩️ 도장 1개 취소됐어요');
-    renderHome(); renderCustomers();
-  });
-}
+      function renderAll() {
+        renderHome();
+        renderCustomers();
+        renderSettings();
+      }
 
-async function redeemCoupon(cid) {
-  var i = D.customers.findIndex(function(x){ return x.id===cid; });
-  if (i < 0) return;
-  var req = D.settings.stampsRequired;
-  if (D.customers[i].stamps < req) { toast('도장이 부족해요'); return; }
-  D.customers[i].stamps -= req;
-  D.customers[i].couponsUsed = (D.customers[i].couponsUsed || 0) + 1;
-  var actId = uid();
-  D.activity.push({ id: actId, cid: cid, type: 'coupon', date: todayStr(), ts: new Date().toISOString() });
+      // ══════════════════════════════════════
+      //  HOME
+      // ══════════════════════════════════════
+      function renderHome() {
+        document.getElementById('homeTitle').textContent = '☕ ' + D.settings.cafeName;
+        document.getElementById('homeDate').textContent =
+          new Date().toLocaleDateString('ko-KR', {year:'numeric', month:'long', day:'numeric', weekday:'short'});
 
-  await Promise.all([
-    sb.from('customers').update({ stamps: D.customers[i].stamps, coupons_used: D.customers[i].couponsUsed }).eq('id', cid),
-    sb.from('activity').insert({ id: actId, customer_id: cid, type: 'coupon', date: todayStr() })
-  ]);
+        var today = todayStr();
+        document.getElementById('statToday').textContent   = D.activity.filter(function(a){ return a.date===today && a.type==='stamp'; }).length;
+        document.getElementById('statTotal').textContent   = D.customers.length;
+        document.getElementById('statCoupons').textContent = D.activity.filter(function(a){ return a.type==='coupon'; }).length;
+        document.getElementById('statStamps').textContent  = D.activity.filter(function(a){ return a.type==='stamp'; }).length;
 
-  closeModal('custModal');
-  toast('🎁 쿠폰 교환 완료\!');
-  renderHome(); renderCustomers();
-}
+        var recent = D.activity.slice().reverse().slice(0, 6);
+        var el = document.getElementById('recentList');
+        if (\!recent.length) {
+          el.innerHTML = '<div class="empty-state"><div class="es-icon">☕</div><p>아직 도장 내역이 없어요<br>첫 손님을 등록해보세요\!</p></div>';
+          return;
+        }
+        el.innerHTML = recent.map(function(a) {
+          var c = D.customers.find(function(x){ return x.id===a.cid; }) || {};
+          var isCoupon = a.type === 'coupon';
+          var time = new Date(a.ts).toLocaleTimeString('ko-KR', {hour:'2-digit', minute:'2-digit'});
+          return '<div class="act-row '+(isCoupon?'coupon':'')+'">'+
+            '<div class="act-icon">'+(isCoupon?'🎁':'☕')+'</div>'+
+            '<div class="act-info">'+
+              '<h4>'+(c.name||'손님')+'</h4>'+
+              '<p>'+(isCoupon ? '쿠폰 교환 완료' : '도장 적립 · 현재 '+a.stamps+'개')+'</p>'+
+            '</div>'+
+            '<div class="act-time">'+time+'</div>'+
+          '</div>';
+        }).join('');
+      }
 
-function delCustomer(cid) {
-  showConfirm('이 손님 정보를 삭제할까요?', async function() {
-    D.customers = D.customers.filter(function(x){ return x.id \!== cid; });
-    D.activity  = D.activity.filter(function(a){ return a.cid \!== cid; });
-    await sb.from('customers').delete().eq('id', cid);
-    closeModal('custModal');
-    toast('손님이 삭제되었어요');
-    renderAll();
-  });
-}
+      // ══════════════════════════════════════
+      //  QUICK STAMP
+      // ══════════════════════════════════════
+      function quickStamp() {
+        var q = document.getElementById('quickInput').value.trim();
+        if (\!q) { toast('닉네임 또는 전화번호를 입력하세요'); return; }
+        var ql = q.toLowerCase().replace(/-/g,'');
+        var hits = D.customers.filter(function(c) {
+          return c.name.toLowerCase().indexOf(ql) >= 0 ||
+            (c.phone && c.phone.replace(/-/g,'').indexOf(ql) >= 0);
+        });
+        if (\!hits.length) {
+          toast('손님을 찾을 수 없어요 → 새 손님 등록');
+          openNewCustomer();
+          return;
+        }
+        if (hits.length === 1) {
+          openCustModal(hits[0].id);
+        } else {
+          showMultiMatch(hits);
+        }
+      }
 
-// ══════════════════════════════════════
-//  NEW CUSTOMER
-// ══════════════════════════════════════
-function openNewCustomer() {
-  document.getElementById('newName').value  = '';
-  document.getElementById('newPhone').value = '';
-  openModal('newCustModal');
-}
+      function showMultiMatch(list) {
+        document.getElementById('custModalTitle').textContent = '손님 선택';
+        document.getElementById('custModalBody').innerHTML = list.map(function(c) {
+          return '<div class="customer-row" style="border-radius:12px;margin-bottom:8px;border:2px solid #F0E8E0;" '+
+            'onclick="closeModal(\'custModal\');openCustModal(\''+c.id+'\')">'+
+            '<div class="avatar">'+c.name[0]+'</div>'+
+            '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · 도장 '+(c.stamps||0)+'개</p></div>'+
+          '</div>';
+        }).join('');
+        openModal('custModal');
+      }
 
-async function addCustomer() {
-  var name  = document.getElementById('newName').value.trim();
-  var phone = document.getElementById('newPhone').value.trim();
-  if (\!name) { toast('이름을 입력해주세요'); return; }
-  if (D.customers.some(function(c){ return c.name === name; })) {
-    toast('같은 이름의 손님이 이미 있어요'); return;
-  }
-  var nc = { id: uid(), name: name, phone: phone, stamps: 0, visits: 0, couponsUsed: 0,
-             createdAt: new Date().toISOString(), lastVisit: null };
-  D.customers.push(nc);
+      // ══════════════════════════════════════
+      //  CUSTOMER MODAL
+      // ══════════════════════════════════════
+      function openCustModal(cid) {
+        var c = D.customers.find(function(x){ return x.id===cid; });
+        if (\!c) return;
+        var req = D.settings.stampsRequired;
+        var currentInCycle = c.stamps % req;
+        var canRedeem = c.stamps >= req;
+        var cols = req <= 5 ? req : (req <= 8 ? 4 : 5);
 
-  await sb.from('customers').insert({
-    id: nc.id, name: nc.name, phone: nc.phone,
-    stamps: 0, visits: 0, coupons_used: 0,
-    created_at: nc.createdAt
-  });
+        var dots = '';
+        for (var i = 0; i < req; i++) {
+          var f = i < currentInCycle;
+          dots += '<div class="stamp-dot '+(f?'filled':'')+'">'+(f?'☕':'')+'</div>';
+        }
 
-  closeModal('newCustModal');
-  toast(name + ' 손님 등록 완료\!');
-  renderCustomers(); renderHome();
-  openCustModal(nc.id);
-}
+        document.getElementById('custModalTitle').textContent = c.name;
+        document.getElementById('custModalBody').innerHTML =
+          '<div style="text-align:center;margin-bottom:18px;">'+
+            '<div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,#6B4226,#9B6542);'+
+              'color:white;font-size:28px;font-weight:800;display:flex;align-items:center;'+
+              'justify-content:center;margin:0 auto 10px;">'+c.name[0]+'</div>'+
+            '<div style="color:#666;font-size:14px;">'+(c.phone||'전화번호 없음')+'</div>'+
+            '<div style="margin-top:8px;">'+
+              '<span class="pill">총 방문 '+(c.visits||0)+'회</span> '+
+              '<span class="pill">쿠폰 사용 '+(c.couponsUsed||0)+'회</span>'+
+            '</div>'+
+          '</div>'+
+          (canRedeem ?
+            '<div class="coupon-alert">'+
+              '<div class="ca-title">🎁 쿠폰 교환 가능\!</div>'+
+              '<div class="ca-sub">'+D.settings.reward+'</div>'+
+            '</div>' : '')+
+          '<div style="background:#F5F0EB;border-radius:16px;padding:16px;margin-bottom:16px;">'+
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+              '<span style="font-size:13px;font-weight:700;color:#6B4226">현재 도장</span>'+
+              '<span style="font-size:14px;font-weight:800;color:#6B4226">'+currentInCycle+' / '+req+'</span>'+
+            '</div>'+
+            '<div class="progress-bar"><div class="progress-fill" style="width:'+((currentInCycle/req)*100)+'%"></div></div>'+
+            '<div class="stamp-grid" style="grid-template-columns:repeat('+cols+',1fr);margin-top:12px;">'+dots+'</div>'+
+          '</div>'+
+          '<button class="btn btn-primary" onclick="addStamp(\''+cid+'\')">☕ 도장 찍기</button>'+
+          (canRedeem ? '<button class="btn btn-success" onclick="redeemCoupon(\''+cid+'\')">🎁 쿠폰 교환하기</button>' : '')+
+          (c.stamps > 0 ? '<button class="btn btn-secondary" onclick="removeStamp(\''+cid+'\')">↩️ 도장 1개 취소</button>' : '')+
+          '<button class="btn btn-danger" onclick="delCustomer(\''+cid+'\')">손님 삭제</button>';
 
-// ══════════════════════════════════════
-//  CUSTOMER LIST
-// ══════════════════════════════════════
-function renderCustomers() {
-  var searchEl = document.getElementById('custSearch');
-  var q = (searchEl ? searchEl.value : '').toLowerCase().replace(/-/g,'');
-  document.getElementById('custCount').textContent = '전체 ' + D.customers.length + '명';
-  var list = D.customers.filter(function(c) {
-    if (\!q) return true;
-    return c.name.toLowerCase().indexOf(q) >= 0 ||
-      (c.phone && c.phone.replace(/-/g,'').indexOf(q) >= 0);
-  });
-  list.sort(function(a, b) {
-    if (\!a.lastVisit && \!b.lastVisit) return a.name.localeCompare(b.name, 'ko');
-    if (\!a.lastVisit) return 1;
-    if (\!b.lastVisit) return -1;
-    return new Date(b.lastVisit) - new Date(a.lastVisit);
-  });
-  var el = document.getElementById('custList');
-  if (\!list.length) {
-    el.innerHTML = '<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'검색 결과가 없어요':'등록된 손님이 없어요')+'</p></div>';
-    return;
-  }
-  var req = D.settings.stampsRequired;
-  el.innerHTML = list.map(function(c) {
-    var cur  = c.stamps % req;
-    var full = c.stamps >= req;
-    var lv = c.lastVisit
-      ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {month:'short', day:'numeric'})
-      : '미방문';
-    return '<div class="customer-row" onclick="openCustModal(\''+c.id+'\')">'+
-      '<div class="avatar">'+c.name[0]+'</div>'+
-      '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · '+lv+'</p></div>'+
-      '<span class="stamp-badge '+(full?'full':'')+'">'+
-        (full ? '🎁 쿠폰' : '☕ '+cur+'/'+req)+
-      '</span>'+
-    '</div>';
-  }).join('');
-}
+        openModal('custModal');
+      }
 
-// ══════════════════════════════════════
-//  SETTINGS
-// ══════════════════════════════════════
-function renderSettings() {
-  document.getElementById('sCafeName').textContent    = D.settings.cafeName;
-  document.getElementById('sStamps').textContent      = D.settings.stampsRequired + '개';
-  document.getElementById('sReward').textContent      = D.settings.reward;
-  document.getElementById('sRegisterUrl').textContent = D.settings.registerUrl || 'Vercel 배포 후 주소 입력';
-  refreshQR();
-}
+      async function addStamp(cid) {
+        var i = D.customers.findIndex(function(x){ return x.id===cid; });
+        if (i < 0) return;
+        D.customers[i].stamps  = (D.customers[i].stamps  || 0) + 1;
+        D.customers[i].visits  = (D.customers[i].visits  || 0) + 1;
+        D.customers[i].lastVisit = new Date().toISOString();
+        var req = D.settings.stampsRequired;
+        var cur = D.customers[i].stamps % req;
+        var actId = uid();
+        var stamps = cur === 0 ? req : cur;
+        D.activity.push({ id: actId, cid: cid, type: 'stamp', stamps: stamps, date: todayStr(), ts: new Date().toISOString() });
 
-function buildRegisterUrl() {
-  var base = D.settings.registerUrl;
-  if (\!base) return '';
-  if (base.charAt(base.length - 1) \!== '/') base += '/';
-  var params = new URLSearchParams({
-    cafe: D.settings.cafeName,
-    req:  String(D.settings.stampsRequired)
-  });
-  return base + '?' + params.toString();
-}
+        await Promise.all([
+          sb.from('customers').upsert({
+            id: cid,
+            name: D.customers[i].name,
+            phone: D.customers[i].phone,
+            stamps: D.customers[i].stamps,
+            visits: D.customers[i].visits,
+            coupons_used: D.customers[i].couponsUsed,
+            last_visit: D.customers[i].lastVisit
+          }),
+          sb.from('activity').insert({
+            id: actId, customer_id: cid, type: 'stamp',
+            stamps: stamps, date: todayStr()
+          })
+        ]);
 
-function refreshQR() {
-  var url = buildRegisterUrl();
-  var card = document.getElementById('qrCard');
-  var container = document.getElementById('qrCanvas');
-  if (\!url) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  container.innerHTML = '';
-  if (window.QRCode) {
-    new QRCode(container, {
-      text: url,
-      width: 200, height: 200,
-      colorDark: '#3E2010', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-  } else {
-    loadQRLib(function() { refreshQR(); });
-  }
-}
+        closeModal('custModal');
+        document.getElementById('quickInput').value = '';
+        var disp = D.customers[i].stamps % req;
+        toast('✅ 도장 찍었어요\! (' + (disp === 0 ? req : disp) + '/' + req + ')');
+        renderHome(); renderCustomers();
+      }
 
-function loadQRLib(cb) {
-  if (window.QRCode) { cb(); return; }
-  var s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
-  s.onload = cb;
-  document.head.appendChild(s);
-}
+      function removeStamp(cid) {
+        showConfirm('도장 1개를 취소할까요?', async function() {
+          var i = D.customers.findIndex(function(x){ return x.id===cid; });
+          if (i < 0) return;
+          if (D.customers[i].stamps <= 0) { toast('취소할 도장이 없어요'); return; }
+          D.customers[i].stamps -= 1;
+          var lastActId = null;
+          for (var j = D.activity.length - 1; j >= 0; j--) {
+            if (D.activity[j].cid === cid && D.activity[j].type === 'stamp') {
+              lastActId = D.activity[j].id;
+              D.activity.splice(j, 1);
+              break;
+            }
+          }
 
-var curKey = '';
-function editSetting(key) {
-  curKey = key;
-  var titleMap = { cafeName:'카페 이름', stampsRequired:'쿠폰 도장 수', reward:'쿠폰 보상', password:'비밀번호 변경', registerUrl:'등록 페이지 URL' };
-  var labelMap = { cafeName:'카페 이름', stampsRequired:'도장 수 (1~20)', reward:'쿠폰 보상 내용', password:'새 비밀번호 (4자리)', registerUrl:'Vercel/Netlify 배포 후 받은 URL' };
-  document.getElementById('settingModalTitle').textContent = titleMap[key];
-  document.getElementById('sLabel1').textContent = labelMap[key];
-  document.getElementById('sInput2Group').style.display = 'none';
-  var inp = document.getElementById('sInput1');
-  inp.type = 'text'; inp.inputMode = 'text'; inp.removeAttribute('maxlength');
-  if (key === 'password') {
-    inp.value = ''; inp.type = 'password'; inp.inputMode = 'numeric'; inp.maxLength = 4;
-    document.getElementById('sInput2Group').style.display = 'block';
-    document.getElementById('sLabel2').textContent = '비밀번호 확인';
-    document.getElementById('sInput2').value = '';
-    document.getElementById('sInput2').type = 'password';
-  } else if (key === 'stampsRequired') {
-    inp.value = D.settings.stampsRequired; inp.type = 'number'; inp.inputMode = 'numeric';
-  } else {
-    inp.value = D.settings[key] || '';
-  }
-  openModal('settingModal');
-}
+          await sb.from('customers').update({ stamps: D.customers[i].stamps }).eq('id', cid);
+          if (lastActId) await sb.from('activity').delete().eq('id', lastActId);
 
-async function saveSetting() {
-  var v1 = document.getElementById('sInput1').value.trim();
-  if (curKey === 'password') {
-    var v2 = document.getElementById('sInput2').value.trim();
-    if (\!/^\d{4}$/.test(v1)) { toast('4자리 숫자를 입력하세요'); return; }
-    if (v1 \!== v2)            { toast('비밀번호가 일치하지 않아요'); return; }
-    D.settings.password = v1;
-  } else if (curKey === 'stampsRequired') {
-    var n = parseInt(v1);
-    if (isNaN(n) || n < 1 || n > 20) { toast('1~20 사이 숫자를 입력하세요'); return; }
-    D.settings.stampsRequired = n;
-  } else {
-    if (\!v1) { toast('값을 입력하세요'); return; }
-    D.settings[curKey] = v1;
-  }
+          closeModal('custModal');
+          toast('↩️ 도장 1개 취소됐어요');
+          renderHome(); renderCustomers();
+        });
+      }
 
-  await sb.from('settings').upsert({ key: curKey, value: String(D.settings[curKey]) });
+      async function redeemCoupon(cid) {
+        var i = D.customers.findIndex(function(x){ return x.id===cid; });
+        if (i < 0) return;
+        var req = D.settings.stampsRequired;
+        if (D.customers[i].stamps < req) { toast('도장이 부족해요'); return; }
+        D.customers[i].stamps -= req;
+        D.customers[i].couponsUsed = (D.customers[i].couponsUsed || 0) + 1;
+        var actId = uid();
+        D.activity.push({ id: actId, cid: cid, type: 'coupon', date: todayStr(), ts: new Date().toISOString() });
 
-  closeModal('settingModal'); renderSettings(); renderHome();
-  if (curKey === 'registerUrl') {
-    loadQRLib(function() { refreshQR(); });
-  }
-  toast('설정이 저장되었어요 ✅');
-}
+        await Promise.all([
+          sb.from('customers').update({ stamps: D.customers[i].stamps, coupons_used: D.customers[i].couponsUsed }).eq('id', cid),
+          sb.from('activity').insert({ id: actId, customer_id: cid, type: 'coupon', date: todayStr() })
+        ]);
 
-// ══════════════════════════════════════
-//  EXPORT & RESET
-// ══════════════════════════════════════
-function exportCSV() {
-  var header = '이름,전화번호,누적도장,총방문,쿠폰사용,마지막방문';
-  var rows = D.customers.map(function(c) {
-    return '"'+c.name+'","'+(c.phone||'')+'",'+
-      (c.stamps||0)+','+(c.visits||0)+','+(c.couponsUsed||0)+','+
-      '"'+(c.lastVisit ? new Date(c.lastVisit).toLocaleDateString('ko-KR') : '')+'"';
-  });
-  var csv = '\uFEFF' + [header].concat(rows).join('\n');
-  var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = '카페손님_' + todayStr() + '.csv';
-  a.click();
-  toast('CSV 파일로 내보냈어요 📤');
-}
+        closeModal('custModal');
+        toast('🎁 쿠폰 교환 완료\!');
+        renderHome(); renderCustomers();
+      }
 
-function confirmReset() {
-  showConfirm('모든 손님 정보를 삭제할까요?\n되돌릴 수 없어요.', async function() {
-    D.customers = []; D.activity = [];
-    await sb.from('activity').delete().neq('id', '');
-    await sb.from('customers').delete().neq('id', '');
-    renderAll(); toast('데이터가 초기화되었어요');
-  });
-}
+      function delCustomer(cid) {
+        showConfirm('이 손님 정보를 삭제할까요?', async function() {
+          D.customers = D.customers.filter(function(x){ return x.id \!== cid; });
+          D.activity  = D.activity.filter(function(a){ return a.cid \!== cid; });
+          await sb.from('customers').delete().eq('id', cid);
+          closeModal('custModal');
+          toast('손님이 삭제되었어요');
+          renderAll();
+        });
+      }
 
-// ══════════════════════════════════════
-//  MODAL HELPERS
-// ══════════════════════════════════════
-function openModal(id)  { document.getElementById(id).classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
-function bgClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+      // ══════════════════════════════════════
+      //  NEW CUSTOMER
+      // ══════════════════════════════════════
+      function openNewCustomer() {
+        document.getElementById('newName').value  = '';
+        document.getElementById('newPhone').value = '';
+        openModal('newCustModal');
+      }
 
-var _confirmCb = null;
-function showConfirm(msg, callback) {
-  _confirmCb = callback;
-  document.getElementById('confirmMsg').textContent = msg;
-  document.getElementById('confirmOkBtn').onclick = function() {
-    closeModal('confirmModal');
-    if (_confirmCb) _confirmCb();
-  };
-  openModal('confirmModal');
-}
+      async function addCustomer() {
+        var name  = document.getElementById('newName').value.trim();
+        var phone = document.getElementById('newPhone').value.trim();
+        if (\!name) { toast('닉네임을 입력해주세요'); return; }
+        if (D.customers.some(function(c){ return c.name === name; })) {
+          toast('같은 닉네임의 손님이 이미 있어요'); return;
+        }
+        var nc = { id: uid(), name: name, phone: phone, stamps: 0, visits: 0, couponsUsed: 0,
+                   createdAt: new Date().toISOString(), lastVisit: null };
+        D.customers.push(nc);
 
-// ══════════════════════════════════════
-//  TOAST
-// ══════════════════════════════════════
-var toastTmr;
-function toast(msg) {
-  var el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTmr);
-  toastTmr = setTimeout(function(){ el.classList.remove('show'); }, 2400);
-}
+        await sb.from('customers').insert({
+          id: nc.id, name: nc.name, phone: nc.phone,
+          stamps: 0, visits: 0, coupons_used: 0,
+          created_at: nc.createdAt
+        });
 
-// ══════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════
-function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
-function todayStr() { return new Date().toISOString().slice(0,10); }
+        closeModal('newCustModal');
+        toast(name + ' 손님 등록 완료\!');
+        renderCustomers(); renderHome();
+        openCustModal(nc.id);
+      }
 
-// ══════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════
-(async function init() {
-  await loadAll();
-  document.getElementById('app').style.display = 'block';
-  document.getElementById('tabBar').style.display = 'flex';
-  renderAll();
-})();
+      // ══════════════════════════════════════
+      //  CUSTOMER LIST
+      // ══════════════════════════════════════
+      function renderCustomers() {
+        var searchEl = document.getElementById('custSearch');
+        var q = (searchEl ? searchEl.value : '').toLowerCase().replace(/-/g,'');
+        document.getElementById('custCount').textContent = '전체 ' + D.customers.length + '명';
+        var list = D.customers.filter(function(c) {
+          if (\!q) return true;
+          return c.name.toLowerCase().indexOf(q) >= 0 ||
+            (c.phone && c.phone.replace(/-/g,'').indexOf(q) >= 0);
+        });
+        list.sort(function(a, b) {
+          if (\!a.lastVisit && \!b.lastVisit) return a.name.localeCompare(b.name, 'ko');
+          if (\!a.lastVisit) return 1;
+          if (\!b.lastVisit) return -1;
+          return new Date(b.lastVisit) - new Date(a.lastVisit);
+        });
+        var el = document.getElementById('custList');
+        if (\!list.length) {
+          el.innerHTML = '<div class="empty-state"><div class="es-icon">👤</div><p>'+(q?'검색 결과가 없어요':'등록된 손님이 없어요')+'</p></div>';
+          return;
+        }
+        var req = D.settings.stampsRequired;
+        el.innerHTML = list.map(function(c) {
+          var cur  = c.stamps % req;
+          var full = c.stamps >= req;
+          var lv = c.lastVisit
+            ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {month:'short', day:'numeric'})
+            : '미방문';
+          return '<div class="customer-row" onclick="openCustModal(\''+c.id+'\')">'+
+            '<div class="avatar">'+c.name[0]+'</div>'+
+            '<div class="cust-info"><h3>'+c.name+'</h3><p>'+(c.phone||'번호 없음')+' · '+lv+'</p></div>'+
+            '<span class="stamp-badge '+(full?'full':'')+'">'+
+              (full ? '🎁 쿠폰' : '☕ '+cur+'/'+req)+
+            '</span>'+
+          '</div>';
+        }).join('');
+      }
 
+      // ══════════════════════════════════════
+      //  SETTINGS
+      // ══════════════════════════════════════
+      function renderSettings() {
+        document.getElementById('sCafeName').textContent    = D.settings.cafeName;
+        document.getElementById('sStamps').textContent      = D.settings.stampsRequired + '개';
+        document.getElementById('sReward').textContent      = D.settings.reward;
+        document.getElementById('sRegisterUrl').textContent = D.settings.registerUrl || 'Vercel 배포 후 주소 입력';
+        refreshQR();
+      }
+
+      function buildRegisterUrl() {
+        var base = D.settings.registerUrl;
+        if (\!base) return '';
+        if (base.charAt(base.length - 1) \!== '/') base += '/';
+        var params = new URLSearchParams({
+          cafe: D.settings.cafeName,
+          req:  String(D.settings.stampsRequired)
+        });
+        return base + '?' + params.toString();
+      }
+
+      function refreshQR() {
+        var url = buildRegisterUrl();
+        var card = document.getElementById('qrCard');
+        var container = document.getElementById('qrCanvas');
+        if (\!url) { card.style.display = 'none'; return; }
+        card.style.display = 'block';
+        container.innerHTML = '';
+        if (window.QRCode) {
+          new QRCode(container, {
+            text: url,
+            width: 200, height: 200,
+            colorDark: '#3E2010', colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } else {
+          loadQRLib(function() { refreshQR(); });
+        }
+      }
+
+      function loadQRLib(cb) {
+        if (window.QRCode) { cb(); return; }
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        s.onload = cb;
+        document.head.appendChild(s);
+      }
+
+      var curKey = '';
+      function editSetting(key) {
+        curKey = key;
+        var titleMap = { cafeName:'카페 닉네임', stampsRequired:'쿠폰 도장 수', reward:'쿠폰 보상', password:'비밀번호 변경', registerUrl:'등록 페이지 URL' };
+        var labelMap = { cafeName:'카페 닉네임', stampsRequired:'도장 수 (1~20)', reward:'쿠폰 보상 내용', password:'새 비밀번호 (4자리)', registerUrl:'Vercel/Netlify 배포 후 받은 URL' };
+        document.getElementById('settingModalTitle').textContent = titleMap[key];
+        document.getElementById('sLabel1').textContent = labelMap[key];
+        document.getElementById('sInput2Group').style.display = 'none';
+        var inp = document.getElementById('sInput1');
+        inp.type = 'text'; inp.inputMode = 'text'; inp.removeAttribute('maxlength');
+        if (key === 'password') {
+          inp.value = ''; inp.type = 'password'; inp.inputMode = 'numeric'; inp.maxLength = 4;
+          document.getElementById('sInput2Group').style.display = 'block';
+          document.getElementById('sLabel2').textContent = '비밀번호 확인';
+          document.getElementById('sInput2').value = '';
+          document.getElementById('sInput2').type = 'password';
+        } else if (key === 'stampsRequired') {
+          inp.value = D.settings.stampsRequired; inp.type = 'number'; inp.inputMode = 'numeric';
+        } else {
+          inp.value = D.settings[key] || '';
+        }
+        openModal('settingModal');
+      }
+
+      async function saveSetting() {
+        var v1 = document.getElementById('sInput1').value.trim();
+        if (curKey === 'password') {
+          var v2 = document.getElementById('sInput2').value.trim();
+          if (\!/^\d{4}$/.test(v1)) { toast('4자리 숫자를 입력하세요'); return; }
+          if (v1 \!== v2)            { toast('비밀번호가 일치하지 않아요'); return; }
+          D.settings.password = v1;
+        } else if (curKey === 'stampsRequired') {
+          var n = parseInt(v1);
+          if (isNaN(n) || n < 1 || n > 20) { toast('1~20 사이 숫자를 입력하세요'); return; }
+          D.settings.stampsRequired = n;
+        } else {
+          if (\!v1) { toast('값을 입력하세요'); return; }
+          D.settings[curKey] = v1;
+        }
+
+        await sb.from('settings').upsert({ key: curKey, value: String(D.settings[curKey]) });
+
+        closeModal('settingModal'); renderSettings(); renderHome();
+        if (curKey === 'registerUrl') {
+          loadQRLib(function() { refreshQR(); });
+        }
+        toast('설정이 저장되었어요 ✅');
+      }
+
+      // ══════════════════════════════════════
+      //  EXPORT & RESET
+      // ══════════════════════════════════════
+      function exportCSV() {
+        var header = '닉네임,전화번호,누적도장,총방문,쿠폰사용,마지막방문';
+        var rows = D.customers.map(function(c) {
+          return '"'+c.name+'","'+(c.phone||'')+'",'+
+            (c.stamps||0)+','+(c.visits||0)+','+(c.couponsUsed||0)+','+
+            '"'+(c.lastVisit ? new Date(c.lastVisit).toLocaleDateString('ko-KR') : '')+'"';
+        });
+        var csv = '\uFEFF' + [header].concat(rows).join('\n');
+        var blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = '카페손님_' + todayStr() + '.csv';
+        a.click();
+        toast('CSV 파일로 내보냈어요 📤');
+      }
+
+      function confirmReset() {
+        showConfirm('모든 손님 정보를 삭제할까요?\n되돌릴 수 없어요.', async function() {
+          D.customers = []; D.activity = [];
+          await sb.from('activity').delete().neq('id', '');
+          await sb.from('customers').delete().neq('id', '');
+          renderAll(); toast('데이터가 초기화되었어요');
+        });
+      }
+
+      // ══════════════════════════════════════
+      //  MODAL HELPERS
+      // ══════════════════════════════════════
+      function openModal(id)  { document.getElementById(id).classList.add('show'); }
+      function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+      function bgClose(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+      var _confirmCb = null;
+      function showConfirm(msg, callback) {
+        _confirmCb = callback;
+        document.getElementById('confirmMsg').textContent = msg;
+        document.getElementById('confirmOkBtn').onclick = function() {
+          closeModal('confirmModal');
+          if (_confirmCb) _confirmCb();
+        };
+        openModal('confirmModal');
+      }
+
+      // ══════════════════════════════════════
+      //  TOAST
+      // ══════════════════════════════════════
+      var toastTmr;
+      function toast(msg) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTmr);
+        toastTmr = setTimeout(function(){ el.classList.remove('show'); }, 2400);
+      }
+
+      // ══════════════════════════════════════
+      //  UTILS
+      // ══════════════════════════════════════
+      function uid()      { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+      function todayStr() { return new Date().toISOString().slice(0,10); }
+
+      // ══════════════════════════════════════
+      //  INIT
+      // ══════════════════════════════════════
+      (async function init() {
+        await loadAll();
+        document.getElementById('app').style.display = 'block';
+        document.getElementById('tabBar').style.display = 'flex';
+        renderAll();
+      })();
     </script>
   </body>
 </html>

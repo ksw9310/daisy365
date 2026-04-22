@@ -54,8 +54,9 @@ export default function CustomersTab({ D, onSelectCustomer }) {
           </div>
         ) : (
           filtered.map((c) => {
+            const availableCoupons = Math.floor(c.stamps / req);
             const cur = c.stamps % req;
-            const full = c.stamps >= req;
+            const full = availableCoupons > 0;
             const lv = c.lastVisit
               ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {
                   month: 'short',
@@ -76,7 +77,7 @@ export default function CustomersTab({ D, onSelectCustomer }) {
                   </p>
                 </div>
                 <span className={`stamp-badge ${full ? 'full' : ''}`}>
-                  {full ? '🎁 쿠폰' : `☕ ${cur}/${req}`}
+                  {full ? `🎁 쿠폰${availableCoupons > 1 ? ' ' + availableCoupons + '개' : ''}` : `☕ ${cur}/${req}`}
                 </span>
               </div>
             );

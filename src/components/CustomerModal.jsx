@@ -1,9 +1,10 @@
 export default function CustomerModal({ customer, settings, onClose, onStamp, onRemoveStamp, onRedeem, onDelete }) {
   if (!customer) return null
 
-  const req            = settings.stampsRequired
-  const currentInCycle = customer.stamps % req
-  const canRedeem      = customer.stamps >= req
+  const req              = settings.stampsRequired
+  const availableCoupons = Math.floor(customer.stamps / req)
+  const currentInCycle   = customer.stamps % req
+  const canRedeem        = availableCoupons > 0
   const cols           = req <= 5 ? req : req <= 8 ? 4 : 5
 
   return (
@@ -34,7 +35,7 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
         {/* 쿠폰 교환 알림 */}
         {canRedeem && (
           <div className="coupon-alert">
-            <div className="ca-title">🎁 쿠폰 교환 가능!</div>
+            <div className="ca-title">🎁 쿠폰 {availableCoupons}개 교환 가능!</div>
             <div className="ca-sub">{settings.reward}</div>
           </div>
         )}

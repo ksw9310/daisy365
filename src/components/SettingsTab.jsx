@@ -6,8 +6,8 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
   const buildUrl = () => {
     const base = D.settings.registerUrl
     if (!base) return ''
-    const b = base.endsWith('/') ? base : base + '/'
-    return b + '?' + new URLSearchParams({ cafe: D.settings.cafeName, req: String(D.settings.stampsRequired) })
+    const params = new URLSearchParams({ cafe: D.settings.cafeName, req: String(D.settings.stampsRequired) })
+    return base + (base.includes('?') ? '&' : '?') + params
   }
 
   useEffect(() => {

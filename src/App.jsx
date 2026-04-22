@@ -116,7 +116,6 @@ export default function App() {
         d.activity.push({ id: actId, cid, type: 'stamp', stamps: stampsVal, date: todayStr(), ts: now })
         return d
       })
-      setSelectedCid(null)
       const inp = document.getElementById('quickInput')
       if (inp) inp.value = ''
       showToast('도장 찍었어요! (' + stampsVal + '/' + req + ')')
@@ -155,7 +154,6 @@ export default function App() {
             }
             return d
           })
-          setSelectedCid(null)
           showToast('도장 1개 취소됐어요')
         } catch (e) {
           console.error(e)

@@ -2,30 +2,37 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#6B4226" />
-    <title>멤버십 등록</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta name="theme-color" content="#2D5A1B" />
+    <title>데이지패스 등록</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet" />
     <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-        -webkit-tap-highlight-color: transparent;
-      }
+      * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
       body {
-        font-family:
-          -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
-        background: linear-gradient(160deg, #6b4226 0%, #3e2010 100%);
+        font-family: 'Nunito', -apple-system, 'Noto Sans KR', BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(160deg, #1E4010 0%, #2D5A1B 60%, #3A7024 100%);
         min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 24px 20px;
+        padding: 28px 20px;
+      }
+
+      /* 배경 데이지 장식 */
+      body::before {
+        content: '✿';
+        position: fixed; bottom: -20px; left: -20px;
+        font-size: 160px; color: rgba(232,184,75,0.07);
+        pointer-events: none; line-height: 1;
+      }
+      body::after {
+        content: '✿';
+        position: fixed; top: -20px; right: -20px;
+        font-size: 120px; color: rgba(232,184,75,0.07);
+        pointer-events: none; line-height: 1;
       }
 
       .card {
@@ -34,198 +41,161 @@
         padding: 36px 28px 32px;
         width: 100%;
         max-width: 400px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        position: relative;
       }
 
-      .logo {
-        font-size: 52px;
-        text-align: center;
-        margin-bottom: 10px;
-      }
-      .cafe-name {
-        font-size: 22px;
-        font-weight: 800;
-        text-align: center;
-        color: #2c1810;
-        margin-bottom: 6px;
-      }
-      .subtitle {
-        font-size: 14px;
-        color: #999;
-        text-align: center;
-        margin-bottom: 32px;
-        line-height: 1.5;
-      }
-
-      .input-group {
-        margin-bottom: 16px;
-      }
-      .input-group label {
-        font-size: 13px;
-        color: #666;
-        margin-bottom: 7px;
-        display: block;
-        font-weight: 700;
-      }
-      .input-group input {
-        width: 100%;
-        padding: 15px 16px;
-        border: 2px solid #e8ddd4;
-        border-radius: 14px;
-        font-size: 17px;
-        outline: none;
-        transition: border-color 0.2s;
-        background: white;
-        color: #2c1810;
-        -webkit-appearance: none;
-      }
-      .input-group input:focus {
-        border-color: #6b4226;
-      }
-
-      .btn {
-        width: 100%;
-        padding: 16px;
-        border-radius: 14px;
-        border: none;
-        font-size: 17px;
-        font-weight: 800;
-        cursor: pointer;
-        margin-top: 8px;
-        transition:
-          transform 0.1s,
-          opacity 0.15s;
-      }
-      .btn:active {
-        transform: scale(0.97);
-        opacity: 0.88;
-      }
-      .btn-primary {
-        background: #6b4226;
-        color: white;
-      }
-
-      .notice {
-        font-size: 12px;
-        color: #bbb;
-        text-align: center;
-        margin-top: 16px;
-        line-height: 1.6;
-      }
-
-      /* Done screen */
-      .done-screen {
-        text-align: center;
-        padding: 8px 0;
-      }
-      .done-icon {
-        font-size: 72px;
-        margin-bottom: 16px;
-      }
-      .done-title {
-        font-size: 24px;
-        font-weight: 800;
-        color: #2c1810;
-        margin-bottom: 10px;
-      }
-      .done-sub {
-        font-size: 15px;
-        color: #666;
-        line-height: 1.7;
+      /* 로고 */
+      .logo-wrap {
+        display: flex; flex-direction: column; align-items: center;
         margin-bottom: 28px;
       }
-      .stamp-preview {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 24px;
+      .logo-box {
+        width: 72px; height: 72px;
+        background: #E8B84B;
+        border-radius: 20px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 38px;
+        box-shadow: 0 6px 20px rgba(232,184,75,0.4);
+        margin-bottom: 14px;
       }
-      .stamp-dot-preview {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: #ede4dc;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
+      .cafe-name {
+        font-size: 22px; font-weight: 900;
+        color: #1E4010; margin-bottom: 4px;
+        letter-spacing: -0.3px;
       }
-      .stamp-dot-preview.first {
-        background: #6b4226;
-      }
-      .done-tip {
-        background: #f5f0eb;
-        border-radius: 14px;
-        padding: 14px 16px;
-        font-size: 13px;
-        color: #6b4226;
-        font-weight: 600;
+      .subtitle {
+        font-size: 14px; color: #888; text-align: center;
+        line-height: 1.6; font-weight: 700;
       }
 
-      /* Error toast */
+      /* 배지 */
+      .stamp-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #F0F8EC; border: 2px solid #C8E0BC;
+        border-radius: 20px; padding: 6px 14px;
+        font-size: 13px; font-weight: 900; color: #2D5A1B;
+        margin-top: 10px;
+      }
+
+      /* 구분선 */
+      .divider {
+        height: 2px; background: #F0F8EC;
+        border-radius: 2px; margin: 24px 0;
+      }
+
+      .input-group { margin-bottom: 16px; }
+      .input-group label {
+        font-size: 13px; color: #444;
+        margin-bottom: 7px; display: block; font-weight: 800;
+      }
+      .input-group input {
+        width: 100%; padding: 15px 16px;
+        border: 2px solid #C8E0BC; border-radius: 14px;
+        font-size: 17px; outline: none;
+        transition: border-color 0.2s;
+        background: white; color: #1E4010;
+        -webkit-appearance: none;
+        font-family: inherit; font-weight: 700;
+      }
+      .input-group input:focus { border-color: #2D5A1B; }
+      .input-group input::placeholder { color: #C0C0C0; font-weight: 700; }
+
+      .btn {
+        width: 100%; padding: 17px;
+        border-radius: 16px; border: none;
+        font-size: 17px; font-weight: 900;
+        cursor: pointer; margin-top: 8px;
+        transition: transform 0.1s, opacity 0.15s;
+        font-family: inherit;
+      }
+      .btn:active { transform: scale(0.97); opacity: 0.88; }
+      .btn-primary { background: #2D5A1B; color: white; }
+
+      .notice {
+        font-size: 11px; color: #BBB; text-align: center;
+        margin-top: 16px; line-height: 1.7; font-weight: 700;
+      }
+
+      /* 완료 화면 */
+      .done-screen { text-align: center; padding: 8px 0; }
+      .done-icon {
+        width: 80px; height: 80px;
+        background: #E8B84B; border-radius: 24px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 40px; margin: 0 auto 18px;
+        box-shadow: 0 6px 20px rgba(232,184,75,0.4);
+      }
+      .done-title {
+        font-size: 26px; font-weight: 900;
+        color: #1E4010; margin-bottom: 10px;
+      }
+      .done-sub {
+        font-size: 15px; color: #666;
+        line-height: 1.7; margin-bottom: 28px; font-weight: 700;
+      }
+      .stamp-preview {
+        display: flex; justify-content: center;
+        gap: 7px; flex-wrap: wrap; margin-bottom: 24px;
+      }
+      .stamp-dot-preview {
+        width: 38px; height: 38px; border-radius: 50%;
+        background: #EEF5E8; border: 2px solid #C8E0BC;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px;
+      }
+      .stamp-dot-preview.first {
+        background: #2D5A1B; border-color: #2D5A1B;
+      }
+      .done-tip {
+        background: #F0F8EC; border: 2px solid #C8E0BC;
+        border-radius: 16px; padding: 14px 16px;
+        font-size: 13px; color: #2D5A1B; font-weight: 800;
+      }
+
+      /* 토스트 */
       .toast {
-        position: fixed;
-        bottom: 40px;
-        left: 50%;
+        position: fixed; bottom: 40px; left: 50%;
         transform: translateX(-50%);
-        background: rgba(30, 15, 5, 0.88);
-        color: white;
-        padding: 11px 22px;
-        border-radius: 24px;
-        font-size: 14px;
-        z-index: 100;
-        opacity: 0;
-        transition: opacity 0.25s;
-        pointer-events: none;
-        white-space: nowrap;
-        font-weight: 500;
+        background: #1E4010; color: white;
+        padding: 11px 22px; border-radius: 24px;
+        font-size: 14px; z-index: 100;
+        opacity: 0; transition: opacity 0.25s;
+        pointer-events: none; white-space: nowrap;
+        font-weight: 800; border: 2px solid #E8B84B;
+        font-family: inherit;
       }
-      .toast.show {
-        opacity: 1;
-      }
+      .toast.show { opacity: 1; }
     </style>
   </head>
   <body>
     <div class="card" id="mainCard">
-      <!-- ── 등록 폼 ── -->
+
+      <!-- 등록 폼 -->
       <div id="formView">
-        <div class="logo">☕</div>
-        <div class="cafe-name" id="cafeNameEl">카페 멤버십</div>
-        <div class="subtitle">
-          도장 쿠폰을 시작해보세요!<br />닉네임과 전화번호 뒷자리만 입력하면
-          돼요.
+        <div class="logo-wrap">
+          <div class="logo-box">🌼</div>
+          <div class="cafe-name" id="cafeNameEl">카페</div>
+          <div class="subtitle">닉네임과 전화번호 뒷자리만 입력하면<br />데이지패스가 시작돼요!</div>
+          <div class="stamp-badge">🎯 도장 <span id="reqEl">12</span>개 모으면 무료 음료</div>
         </div>
+
+        <div class="divider"></div>
 
         <div class="input-group">
           <label>닉네임 *</label>
-          <input
-            type="text"
-            id="regName"
-            placeholder="홍길동"
+          <input type="text" id="regName" placeholder="홍길동"
             autocomplete="name"
-            onkeydown="
-              if (event.key === 'Enter')
-                document.getElementById('regPhone').focus();
-            "
-          />
+            onkeydown="if(event.key==='Enter') document.getElementById('regPhone').focus();" />
         </div>
         <div class="input-group">
           <label>전화번호 뒷 4자리 *</label>
-          <input
-            type="tel"
-            id="regPhone"
-            placeholder="1234"
-            maxlength="4"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            onkeydown="if (event.key === 'Enter') submitReg();"
-          />
+          <input type="tel" id="regPhone" placeholder="1234"
+            maxlength="4" inputmode="numeric" pattern="[0-9]*"
+            onkeydown="if(event.key==='Enter') submitReg();" />
         </div>
 
-        <button class="btn btn-primary" onclick="submitReg()">
-          등록하기 →
-        </button>
+        <button class="btn btn-primary" onclick="submitReg()">🌼 등록하기</button>
 
         <div class="notice">
           수집된 정보는 도장쿠폰 운영 목적으로만 사용됩니다.<br />
@@ -233,8 +203,8 @@
         </div>
       </div>
 
-      <!-- ── 완료 화면 ── -->
-      <div id="doneView" style="display: none">
+      <!-- 완료 화면 -->
+      <div id="doneView" style="display:none">
         <div class="done-screen">
           <div class="done-icon">🎉</div>
           <div class="done-title">등록 완료!</div>
@@ -243,9 +213,7 @@
             카운터에서 첫 도장을 받으세요.
           </div>
           <div class="stamp-preview" id="stampPreview"></div>
-          <div class="done-tip">
-            ☕ 도장을 다 모으면 쿠폰으로 교환할 수 있어요!
-          </div>
+          <div class="done-tip">🌼 데이지패스 — 도장을 다 모으면 무료 음료로 교환할 수 있어요!</div>
         </div>
       </div>
     </div>
@@ -253,102 +221,73 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      var SUPABASE_URL = 'https://vaepdtquinftazrcfsdi.supabase.co';
-      var SUPABASE_KEY = 'sb_publishable_ImT7BXe37H-_GqPHDZscDg__JM2JBpU';
-      var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      var SUPABASE_URL = 'https://fftgsnhqgvmfbdxkycny.supabase.co';
+      var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZmdGdzbmhxZ3ZtZmJkeGt5Y255Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUyMTU1NjcsImV4cCI6MjA2MDc5MTU2N30.xCK7sVFbkJkmyK0Z1tJqiRm4TSVWm0oOWqk3e9yvhF8';
 
-      var params = new URLSearchParams(location.search);
-      var cafeName = params.get('cafe') || '카페 멤버십';
-      var stampsReq = parseInt(params.get('req') || '12');
+      var params     = new URLSearchParams(location.search);
+      var cafeName   = params.get('cafe') || '카페';
+      var stampsReq  = parseInt(params.get('req') || '12');
 
       document.getElementById('cafeNameEl').textContent = cafeName;
-      document.title = cafeName + ' 등록';
+      document.getElementById('reqEl').textContent = stampsReq;
+      document.title = cafeName + ' 데이지패스';
 
       function buildStampPreview() {
-        var el = document.getElementById('stampPreview');
+        var el   = document.getElementById('stampPreview');
         var show = Math.min(stampsReq, 10);
         var html = '';
         for (var i = 0; i < show; i++) {
-          html +=
-            '<div class="stamp-dot-preview ' +
-            (i === 0 ? 'first' : '') +
-            '">' +
-            (i === 0 ? '☕' : '') +
-            '</div>';
+          html += '<div class="stamp-dot-preview ' + (i === 0 ? 'first' : '') + '">'
+                + (i === 0 ? '🌼' : '') + '</div>';
         }
-        if (stampsReq > 10)
-          html +=
-            '<span style="font-size:13px;color:#999;align-self:center">... ' +
-            stampsReq +
-            '개</span>';
+        if (stampsReq > 10) html += '<span style="font-size:13px;color:#999;align-self:center;font-weight:800">+' + (stampsReq - 10) + '</span>';
         el.innerHTML = html;
       }
       buildStampPreview();
 
-      function uid() {
-        return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-      }
-
       async function submitReg() {
-        var name = document.getElementById('regName').value.trim();
+        var name  = document.getElementById('regName').value.trim();
         var phone = document.getElementById('regPhone').value.trim();
 
-        if (!name) {
-          showToast('닉네임을 입력해주세요');
+        if (!name)              { showToast('닉네임을 입력해주세요'); return; }
+        if (!/^\d{4}$/.test(phone)) { showToast('번호 뒷 4자리를 입력해주세요'); return; }
+
+        // 중복 체크
+        var checkRes = await fetch(
+          SUPABASE_URL + '/rest/v1/customers?name=eq.' + encodeURIComponent(name) + '&phone=like.*' + phone,
+          { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } }
+        );
+        var existing = await checkRes.json();
+        if (existing && existing.length > 0) {
+          showToast('이미 등록된 손님이에요');
           return;
         }
-        if (!/^\d{4}$/.test(phone)) {
-          showToast('번호 뒷 4자리를 입력해주세요');
+
+        // 등록
+        var id  = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString();
+        var res = await fetch(SUPABASE_URL + '/rest/v1/customers', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            id: id, name: name, phone: phone,
+            stamps: 0, visits: 0, coupons_used: 0,
+            created_at: new Date().toISOString()
+          })
+        });
+
+        if (!res.ok) {
+          showToast('등록 실패. 다시 시도해주세요');
           return;
         }
 
-        var btn = document.querySelector('.btn-primary');
-        btn.disabled = true;
-        btn.textContent = '등록 중...';
-
-        try {
-          // 중복 닉네임: 이름 검색
-          var existing = await sb
-            .from('customers')
-            .select('id, phone')
-            .eq('name', name);
-          if (existing.data && existing.data.length > 0) {
-            // 이름+번호 동일 여부 확인닉네임
-            var sameNamePhone = existing.data.some(function (r) {
-              return r.phone && phone && r.phone.slice(-4) === phone.slice(-4);
-            });
-            if (sameNamePhone) {
-              showToast('이미 등록된 손님이에요 (이름+번호 동일)');
-            } else {
-              showToast('같은 이름의 손님이 이미 있어요');
-            }
-            btn.disabled = false;
-            btn.textContent = '등록하기 →';
-            return;
-          }
-
-          var newId = uid();
-          var res = await sb.from('customers').insert({
-            id: newId,
-            name: name,
-            phone: phone,
-            stamps: 0,
-            visits: 0,
-            coupons_used: 0,
-            created_at: new Date().toISOString(),
-          });
-
-          if (res.error) throw res.error;
-
-          document.getElementById('doneNameEl').textContent = name;
-          document.getElementById('formView').style.display = 'none';
-          document.getElementById('doneView').style.display = 'block';
-        } catch (e) {
-          console.error(e);
-          showToast('오류: ' + (e.message || '등록 실패'));
-          btn.disabled = false;
-          btn.textContent = '등록하기 →';
-        }
+        document.getElementById('doneNameEl').textContent = name;
+        document.getElementById('formView').style.display = 'none';
+        document.getElementById('doneView').style.display = 'block';
       }
 
       var toastTmr;
@@ -357,9 +296,7 @@
         el.textContent = msg;
         el.classList.add('show');
         clearTimeout(toastTmr);
-        toastTmr = setTimeout(function () {
-          el.classList.remove('show');
-        }, 2400);
+        toastTmr = setTimeout(function() { el.classList.remove('show'); }, 2400);
       }
     </script>
   </body>

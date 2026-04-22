@@ -316,7 +316,7 @@ export default function App() {
       <div className="loading-screen">
         <div className="logo-box">🌼</div>
         <div className="spinner" />
-        <span>불러오는 중...</span>
+        <span>데이지패스 로딩 중...</span>
       </div>
     )
   }

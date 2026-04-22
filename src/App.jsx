@@ -220,11 +220,11 @@ export default function App() {
   // 새 손님 등록
   const doAddCustomer = async (name, phone) => {
     if (!name) { showToast('닉네임을 입력해주세요'); return }
-    const sameName  = D.customers.find(c => c.name === name)
-    if (sameName) {
-      const samePhone = phone && sameName.phone && sameName.phone.replace(/-/g,'').endsWith(phone.replace(/-/g,''))
-      if (samePhone) { showToast('이미 등록된 손님이에요 (이름+번호 동일)'); return }
-      showToast('같은 이름의 손님이 이미 있어요'); return
+    if (phone) {
+      const duplicate = D.customers.find(c =>
+        c.name === name && c.phone && c.phone.replace(/-/g,'').endsWith(phone.replace(/-/g,''))
+      )
+      if (duplicate) { showToast('이미 등록된 손님이에요'); return }
     }
     const nc = {
       id: uid(), name, phone,

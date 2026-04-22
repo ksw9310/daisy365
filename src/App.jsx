@@ -39,7 +39,7 @@ export default function App() {
 
   const updateD = (fn) => setD(prev => fn(JSON.parse(JSON.stringify(prev))))
 
-  // ── 데이터 로드 ──
+  // 데이터 로드
   useEffect(() => {
     async function load() {
       try {
@@ -75,43 +75,38 @@ export default function App() {
     load()
   }, [])
 
-  // ── 손님 검색 / 도장 ──
+  // 손님 검색
   const handleStamp = (q) => {
-    if (\!q) { showToast('이름 또는 전화번호를 입력하세요'); return }
+    if (!q) { showToast('이름 또는 전화번호를 입력하세요'); return }
     const ql   = q.toLowerCase().replace(/-/g, '')
     const hits = D.customers.filter(c =>
       c.name.toLowerCase().includes(ql) ||
       (c.phone && c.phone.replace(/-/g, '').includes(ql))
     )
-    if (\!hits.length) { showToast('손님을 찾을 수 없어요'); setShowNew(true); return }
+    if (!hits.length) { showToast('손님을 찾을 수 없어요'); setShowNew(true); return }
     if (hits.length === 1) setSelectedCid(hits[0].id)
     else setMultiMatch(hits)
   }
 
-  // ── 도장 찍기 ──
+  // 도장 찍기
   const doAddStamp = async (cid) => {
     const customer = D.customers.find(x => x.id === cid)
-    if (\!customer) return
+    if (!customer) return
     const req       = D.settings.stampsRequired
     const newStamps = (customer.stamps || 0) + 1
     const cur       = newStamps % req
     const stampsVal = cur === 0 ? req : cur
     const actId     = uid()
     const now       = new Date().toISOString()
-
     try {
       const { error: e1 } = await sb.from('customers').update({
-        stamps: newStamps,
-        visits: (customer.visits || 0) + 1,
-        last_visit: now,
+        stamps: newStamps, visits: (customer.visits || 0) + 1, last_visit: now,
       }).eq('id', cid)
       if (e1) throw e1
-
       const { error: e2 } = await sb.from('activity').insert({
         id: actId, customer_id: cid, type: 'stamp', stamps: stampsVal, date: todayStr()
       })
       if (e2) throw e2
-
       updateD(d => {
         const i = d.customers.findIndex(x => x.id === cid)
         if (i < 0) return d
@@ -124,20 +119,20 @@ export default function App() {
       setSelectedCid(null)
       const inp = document.getElementById('quickInput')
       if (inp) inp.value = ''
-      showToast('도장 찍었어요\! (' + stampsVal + '/' + req + ')')
+      showToast('도장 찍었어요! (' + stampsVal + '/' + req + ')')
     } catch (e) {
       console.error(e)
       showToast('오류: ' + (e.message || '도장 찍기 실패'))
     }
   }
 
-  // ── 도장 취소 ──
+  // 도장 취소
   const doRemoveStamp = (cid) => {
     setConfirm({
       msg: '도장 1개를 취소할까요?',
       onOk: async () => {
         const customer = D.customers.find(x => x.id === cid)
-        if (\!customer || customer.stamps <= 0) { showToast('취소할 도장이 없어요'); return }
+        if (!customer || customer.stamps <= 0) { showToast('취소할 도장이 없어요'); return }
         let lastActId = null
         for (let j = D.activity.length - 1; j >= 0; j--) {
           if (D.activity[j].cid === cid && D.activity[j].type === 'stamp') {
@@ -170,11 +165,11 @@ export default function App() {
     })
   }
 
-  // ── 쿠폰 교환 ──
+  // 쿠폰 교환
   const doRedeem = async (cid) => {
     const customer = D.customers.find(x => x.id === cid)
     const req      = D.settings.stampsRequired
-    if (\!customer || customer.stamps < req) { showToast('도장이 부족해요'); return }
+    if (!customer || customer.stamps < req) { showToast('도장이 부족해요'); return }
     const actId = uid()
     try {
       const { error: e1 } = await sb.from('customers').update({
@@ -182,12 +177,10 @@ export default function App() {
         coupons_used: (customer.couponsUsed || 0) + 1,
       }).eq('id', cid)
       if (e1) throw e1
-
       const { error: e2 } = await sb.from('activity').insert({
         id: actId, customer_id: cid, type: 'coupon', date: todayStr()
       })
       if (e2) throw e2
-
       updateD(d => {
         const i = d.customers.findIndex(x => x.id === cid)
         d.customers[i].stamps      -= req
@@ -196,14 +189,14 @@ export default function App() {
         return d
       })
       setSelectedCid(null)
-      showToast('쿠폰 교환 완료\!')
+      showToast('쿠폰 교환 완료!')
     } catch (e) {
       console.error(e)
       showToast('오류: ' + (e.message || '쿠폰 교환 실패'))
     }
   }
 
-  // ── 손님 삭제 ──
+  // 손님 삭제
   const doDelete = (cid) => {
     setConfirm({
       msg: '이 손님 정보를 삭제할까요?',
@@ -212,8 +205,8 @@ export default function App() {
           const { error } = await sb.from('customers').delete().eq('id', cid)
           if (error) throw error
           updateD(d => {
-            d.customers = d.customers.filter(x => x.id \!== cid)
-            d.activity  = d.activity.filter(a => a.cid \!== cid)
+            d.customers = d.customers.filter(x => x.id !== cid)
+            d.activity  = d.activity.filter(a => a.cid !== cid)
             return d
           })
           setSelectedCid(null)
@@ -226,9 +219,9 @@ export default function App() {
     })
   }
 
-  // ── 새 손님 등록 ──
+  // 새 손님 등록
   const doAddCustomer = async (name, phone) => {
-    if (\!name) { showToast('이름을 입력해주세요'); return }
+    if (!name) { showToast('이름을 입력해주세요'); return }
     if (D.customers.some(c => c.name === name)) { showToast('같은 이름의 손님이 이미 있어요'); return }
     const nc = {
       id: uid(), name, phone,
@@ -238,32 +231,31 @@ export default function App() {
     try {
       const { error } = await sb.from('customers').insert({
         id: nc.id, name: nc.name, phone: nc.phone,
-        stamps: 0, visits: 0, coupons_used: 0,
-        created_at: nc.createdAt
+        stamps: 0, visits: 0, coupons_used: 0, created_at: nc.createdAt
       })
       if (error) throw error
       updateD(d => { d.customers.push(nc); return d })
       setShowNew(false)
       setSelectedCid(nc.id)
-      showToast(name + ' 손님 등록 완료\!')
+      showToast(name + ' 손님 등록 완료!')
     } catch (e) {
       console.error(e)
       showToast('오류: ' + (e.message || '등록 실패'))
     }
   }
 
-  // ── 설정 저장 ──
+  // 설정 저장
   const doSaveSetting = async (key, v1, v2) => {
     let value = v1
     if (key === 'password') {
-      if (\!/^\d{4}$/.test(v1)) { showToast('4자리 숫자를 입력하세요'); return }
-      if (v1 \!== v2)            { showToast('비밀번호가 일치하지 않아요'); return }
+      if (!/^\d{4}$/.test(v1)) { showToast('4자리 숫자를 입력하세요'); return }
+      if (v1 !== v2) { showToast('비밀번호가 일치하지 않아요'); return }
     } else if (key === 'stampsRequired') {
       const n = parseInt(v1)
       if (isNaN(n) || n < 1 || n > 20) { showToast('1~20 사이 숫자를 입력하세요'); return }
       value = String(n)
     } else {
-      if (\!v1) { showToast('값을 입력하세요'); return }
+      if (!v1) { showToast('값을 입력하세요'); return }
     }
     try {
       const { error } = await sb.from('settings').upsert({ key, value })
@@ -280,7 +272,7 @@ export default function App() {
     }
   }
 
-  // ── CSV 내보내기 ──
+  // CSV 내보내기
   const doExport = () => {
     const header = '이름,전화번호,누적도장,총방문,쿠폰사용,마지막방문'
     const rows   = D.customers.map(c =>
@@ -297,7 +289,7 @@ export default function App() {
     showToast('CSV 내보냈어요')
   }
 
-  // ── 전체 초기화 ──
+  // 전체 초기화
   const doReset = () => {
     setConfirm({
       msg: '모든 손님 정보를 삭제할까요?\n되돌릴 수 없어요.',

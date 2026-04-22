@@ -22,7 +22,7 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
         text: url,
         width: 200,
         height: 200,
-        colorDark: '#3E2010',
+        colorDark: '#1E4010',
         colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.M,
       });
@@ -31,8 +31,7 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
       loadQR();
     } else {
       const s = document.createElement('script');
-      s.src =
-        'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
       s.onload = loadQR;
       document.head.appendChild(s);
     }
@@ -43,43 +42,22 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
   return (
     <div className="screen active">
       <div className="header">
-        <h1>설정</h1>
-        <p>카페 운영 설정</p>
+        <div className="header-logo">🌼</div>
+        <div>
+          <h1>설정</h1>
+          <p>카페 운영 설정</p>
+        </div>
       </div>
 
       <div className="section-title">카페 정보</div>
       <div className="settings-block">
         {[
-          {
-            key: 'cafeName',
-            icon: '☕',
-            title: '카페 닉네임',
-            sub: D.settings.cafeName,
-          },
-          {
-            key: 'stampsRequired',
-            icon: '🎯',
-            title: '쿠폰 완성 도장 수',
-            sub: D.settings.stampsRequired + '개',
-          },
-          {
-            key: 'reward',
-            icon: '🎁',
-            title: '쿠폰 보상 내용',
-            sub: D.settings.reward,
-          },
-          {
-            key: 'password',
-            icon: '🔐',
-            title: '비밀번호 변경',
-            sub: '사장님 모드 잠금 번호',
-          },
+          { key: 'cafeName',        icon: '🌼', title: '카페 닉네임',       sub: D.settings.cafeName },
+          { key: 'stampsRequired',  icon: '🎯', title: '쿠폰 완성 도장 수', sub: D.settings.stampsRequired + '개' },
+          { key: 'reward',          icon: '🎁', title: '쿠폰 보상 내용',    sub: D.settings.reward },
+          { key: 'password',        icon: '🔐', title: '비밀번호 변경',      sub: '사장님 모드 잠금 번호' },
         ].map(({ key, icon, title, sub }) => (
-          <button
-            key={key}
-            className="settings-row"
-            onClick={() => onEdit(key)}
-          >
+          <button key={key} className="settings-row" onClick={() => onEdit(key)}>
             <span className="s-icon">{icon}</span>
             <div className="s-text">
               <h3>{title}</h3>
@@ -104,27 +82,12 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
 
       {qrUrl && (
         <div className="card" style={{ textAlign: 'center' }}>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 700,
-              color: '#6B4226',
-              marginBottom: 12,
-            }}
-          >
+          <div style={{ fontSize: 14, fontWeight: 800, color: '#2D5A1B', marginBottom: 12 }}>
             📷 손님용 QR 코드
           </div>
-          <div
-            ref={qrRef}
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              marginBottom: 12,
-            }}
-          />
-          <div style={{ fontSize: 11, color: '#999', lineHeight: 1.6 }}>
-            카운터에 출력하거나 화면을 보여주세요
-            <br />
+          <div ref={qrRef} style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }} />
+          <div style={{ fontSize: 11, color: '#888', lineHeight: 1.6 }}>
+            카운터에 출력하거나 화면을 보여주세요<br />
             손님이 스캔하면 등록 페이지가 열려요
           </div>
         </div>
@@ -150,15 +113,8 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
         </button>
       </div>
 
-      <div
-        style={{
-          textAlign: 'center',
-          padding: '24px 20px 10px',
-          color: '#CCC',
-          fontSize: 12,
-        }}
-      >
-        카페 도장쿠폰 v2.0 · Made with ☕
+      <div style={{ textAlign: 'center', padding: '24px 20px 10px', color: 'rgba(255,255,255,0.3)', fontSize: 12, fontWeight: 700 }}>
+        🌼 Daisy 365 · Made with love
       </div>
     </div>
   );

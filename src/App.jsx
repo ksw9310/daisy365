@@ -272,7 +272,7 @@ export default function App() {
     } catch (e) {
       console.error(e)
       showToast('오류: ' + (e.message || '저장 실패'))
-    }닉네임
+    }
   }
 
   // CSV 내보내기
@@ -314,6 +314,7 @@ export default function App() {
   if (loading) {
     return (
       <div className="loading-screen">
+        <div className="logo-box">🌼</div>
         <div className="spinner" />
         <span>불러오는 중...</span>
       </div>

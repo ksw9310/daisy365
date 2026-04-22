@@ -14,8 +14,7 @@ export default function CustomersTab({ D, onSelectCustomer }) {
       );
     })
     .sort((a, b) => {
-      if (!a.lastVisit && !b.lastVisit)
-        return a.name.localeCompare(b.name, 'ko');
+      if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name, 'ko');
       if (!a.lastVisit) return 1;
       if (!b.lastVisit) return -1;
       return new Date(b.lastVisit) - new Date(a.lastVisit);
@@ -24,8 +23,11 @@ export default function CustomersTab({ D, onSelectCustomer }) {
   return (
     <div className="screen active">
       <div className="header">
-        <h1>손님 목록</h1>
-        <p>전체 {D.customers.length}명</p>
+        <div className="header-logo">🌼</div>
+        <div>
+          <h1>손님 목록</h1>
+          <p>전체 {D.customers.length}명</p>
+        </div>
       </div>
 
       <div className="search-wrap">
@@ -38,18 +40,12 @@ export default function CustomersTab({ D, onSelectCustomer }) {
         />
       </div>
 
-      <div
-        style={{
-          background: 'white',
-          borderRadius: 18,
-          margin: '0 16px',
-          overflow: 'hidden',
-          boxShadow: '0 2px 10px rgba(107,66,38,0.07)',
-        }}
-      >
+      <div style={{ height: 12 }} />
+
+      <div className="customer-list-wrap">
         {filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="es-icon">👤</div>
+            <div className="es-icon">🌿</div>
             <p>{query ? '검색 결과가 없어요' : '등록된 손님이 없어요'}</p>
           </div>
         ) : (
@@ -59,25 +55,20 @@ export default function CustomersTab({ D, onSelectCustomer }) {
             const full = availableCoupons > 0;
             const lv = c.lastVisit
               ? new Date(c.lastVisit).toLocaleDateString('ko-KR', {
-                  month: 'short',
-                  day: 'numeric',
+                  month: 'short', day: 'numeric',
                 })
               : '미방문';
             return (
-              <div
-                key={c.id}
-                className="customer-row"
-                onClick={() => onSelectCustomer(c.id)}
-              >
+              <div key={c.id} className="customer-row" onClick={() => onSelectCustomer(c.id)}>
                 <div className="avatar">{c.name[0]}</div>
                 <div className="cust-info">
                   <h3>{c.name}</h3>
-                  <p>
-                    {c.phone || '번호 없음'} · {lv}
-                  </p>
+                  <p>{c.phone || '번호 없음'} · {lv}</p>
                 </div>
                 <span className={`stamp-badge ${full ? 'full' : ''}`}>
-                  {full ? `🎁 쿠폰${availableCoupons > 1 ? ' ' + availableCoupons + '개' : ''}` : `☕ ${cur}/${req}`}
+                  {full
+                    ? `🎁 쿠폰${availableCoupons > 1 ? ' ' + availableCoupons + '개' : ''}`
+                    : `🌼 ${cur}/${req}`}
                 </span>
               </div>
             );

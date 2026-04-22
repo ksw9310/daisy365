@@ -5,7 +5,7 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
   const availableCoupons = Math.floor(customer.stamps / req)
   const currentInCycle   = customer.stamps % req
   const canRedeem        = availableCoupons > 0
-  const cols           = req <= 5 ? req : req <= 8 ? 4 : 5
+  const cols             = req <= 5 ? req : req <= 8 ? 4 : 5
 
   return (
     <div className="overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -20,12 +20,13 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
         <div style={{ textAlign: 'center', marginBottom: 18 }}>
           <div style={{
             width: 70, height: 70, borderRadius: '50%',
-            background: 'linear-gradient(135deg,#6B4226,#9B6542)',
-            color: 'white', fontSize: 28, fontWeight: 800,
+            background: 'linear-gradient(135deg,#2D5A1B,#5A9A35)',
+            color: 'white', fontSize: 28, fontWeight: 900,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 10px'
+            margin: '0 auto 10px',
+            boxShadow: '0 4px 14px rgba(45,90,27,0.3)',
           }}>{customer.name[0]}</div>
-          <div style={{ color: '#666', fontSize: 14 }}>{customer.phone || '전화번호 없음'}</div>
+          <div style={{ color: '#666', fontSize: 14, fontWeight: 700 }}>{customer.phone || '전화번호 없음'}</div>
           <div style={{ marginTop: 8 }}>
             <span className="pill">총 방문 {customer.visits || 0}회</span>{' '}
             <span className="pill">쿠폰 사용 {customer.couponsUsed || 0}회</span>
@@ -41,10 +42,10 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
         )}
 
         {/* 도장 현황 */}
-        <div style={{ background: '#F5F0EB', borderRadius: 16, padding: 16, marginBottom: 16 }}>
+        <div style={{ background: '#F0F8EC', borderRadius: 18, padding: 16, marginBottom: 16, border: '2px solid #C8E0BC' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: '#6B4226' }}>현재 도장</span>
-            <span style={{ fontSize: 14, fontWeight: 800, color: '#6B4226' }}>{currentInCycle} / {req}</span>
+            <span style={{ fontSize: 13, fontWeight: 900, color: '#2D5A1B' }}>현재 도장</span>
+            <span style={{ fontSize: 14, fontWeight: 900, color: '#2D5A1B' }}>{currentInCycle} / {req}</span>
           </div>
           <div className="progress-bar">
             <div className="progress-fill" style={{ width: `${(currentInCycle / req) * 100}%` }} />
@@ -52,15 +53,15 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
           <div className="stamp-grid" style={{ gridTemplateColumns: `repeat(${cols}, 1fr)`, marginTop: 12 }}>
             {Array.from({ length: req }, (_, i) => (
               <div key={i} className={`stamp-dot ${i < currentInCycle ? 'filled' : ''}`}>
-                {i < currentInCycle ? '☕' : ''}
+                {i < currentInCycle ? '🌼' : ''}
               </div>
             ))}
           </div>
         </div>
 
         {/* 액션 버튼 */}
-        <button className="btn btn-primary" onClick={onStamp}>☕ 도장 찍기</button>
-        {canRedeem && <button className="btn btn-success" onClick={onRedeem}>🎁 쿠폰 교환하기</button>}
+        <button className="btn btn-primary" onClick={onStamp}>🌼 도장 찍기</button>
+        {canRedeem && <button className="btn btn-yellow" onClick={onRedeem}>🎁 쿠폰 교환하기</button>}
         {customer.stamps > 0 && <button className="btn btn-secondary" onClick={onRemoveStamp}>↩️ 도장 1개 취소</button>}
         <button className="btn btn-danger" onClick={onDelete}>손님 삭제</button>
       </div>

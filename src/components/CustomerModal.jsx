@@ -1,5 +1,5 @@
 export default function CustomerModal({ customer, settings, onClose, onStamp, onRemoveStamp, onRedeem, onDelete }) {
-  if (\!customer) return null
+  if (!customer) return null
 
   const req            = settings.stampsRequired
   const currentInCycle = customer.stamps % req
@@ -34,7 +34,7 @@ export default function CustomerModal({ customer, settings, onClose, onStamp, on
         {/* 쿠폰 교환 알림 */}
         {canRedeem && (
           <div className="coupon-alert">
-            <div className="ca-title">🎁 쿠폰 교환 가능\!</div>
+            <div className="ca-title">🎁 쿠폰 교환 가능!</div>
             <div className="ca-sub">{settings.reward}</div>
           </div>
         )}

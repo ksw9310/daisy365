@@ -5,14 +5,14 @@ export default function SettingsTab({ D, onEdit, onExport, onReset }) {
 
   const buildUrl = () => {
     const base = D.settings.registerUrl
-    if (\!base) return ''
+    if (!base) return ''
     const b = base.endsWith('/') ? base : base + '/'
     return b + '?' + new URLSearchParams({ cafe: D.settings.cafeName, req: String(D.settings.stampsRequired) })
   }
 
   useEffect(() => {
     const url = buildUrl()
-    if (\!url || \!qrRef.current) return
+    if (!url || !qrRef.current) return
     qrRef.current.innerHTML = ''
     const loadQR = () => {
       new window.QRCode(qrRef.current, {

@@ -76,13 +76,13 @@ export default function App() {
 
   // ── 도장 찍기 ──
   const handleStamp = (q) => {
-    if (\!q) { showToast('이름 또는 전화번호를 입력하세요'); return }
+    if (!q) { showToast('이름 또는 전화번호를 입력하세요'); return }
     const ql   = q.toLowerCase().replace(/-/g, '')
     const hits = D.customers.filter(c =>
       c.name.toLowerCase().includes(ql) ||
       (c.phone && c.phone.replace(/-/g, '').includes(ql))
     )
-    if (\!hits.length) { showToast('손님을 찾을 수 없어요 → 새 손님 등록'); setShowNew(true); return }
+    if (!hits.length) { showToast('손님을 찾을 수 없어요 → 새 손님 등록'); setShowNew(true); return }
     if (hits.length === 1) { setSelectedCid(hits[0].id) }
     else { setMultiMatch(hits) }
   }
@@ -124,7 +124,7 @@ export default function App() {
 
     setSelectedCid(null)
     document.getElementById('quickInput') && (document.getElementById('quickInput').value = '')
-    showToast(`✅ 도장 찍었어요\! (${stampsVal}/${req})`)
+    showToast(`✅ 도장 찍었어요! (${stampsVal}/${req})`)
   }
 
   const doRemoveStamp = (cid) => {
@@ -147,7 +147,7 @@ export default function App() {
           return d
         })
         const cur = D.customers.find(x => x.id === cid)
-        if (\!cur || cur.stamps <= 0) { showToast('취소할 도장이 없어요'); return }
+        if (!cur || cur.stamps <= 0) { showToast('취소할 도장이 없어요'); return }
         await sb.from('customers').update({ stamps: cur.stamps - 1 }).eq('id', cid)
         if (lastActId) await sb.from('activity').delete().eq('id', lastActId)
         setSelectedCid(null)
@@ -159,7 +159,7 @@ export default function App() {
   const doRedeem = async (cid) => {
     const c   = D.customers.find(x => x.id === cid)
     const req = D.settings.stampsRequired
-    if (\!c || c.stamps < req) { showToast('도장이 부족해요'); return }
+    if (!c || c.stamps < req) { showToast('도장이 부족해요'); return }
     const actId = uid()
     updateD(d => {
       const i = d.customers.findIndex(x => x.id === cid)
@@ -173,7 +173,7 @@ export default function App() {
       sb.from('activity').insert({ id: actId, customer_id: cid, type: 'coupon', date: todayStr() }),
     ])
     setSelectedCid(null)
-    showToast('🎁 쿠폰 교환 완료\!')
+    showToast('🎁 쿠폰 교환 완료!')
   }
 
   const doDelete = (cid) => {
@@ -181,8 +181,8 @@ export default function App() {
       msg: '이 손님 정보를 삭제할까요?',
       onOk: async () => {
         updateD(d => {
-          d.customers = d.customers.filter(x => x.id \!== cid)
-          d.activity  = d.activity.filter(a => a.cid \!== cid)
+          d.customers = d.customers.filter(x => x.id !== cid)
+          d.activity  = d.activity.filter(a => a.cid !== cid)
           return d
         })
         await sb.from('customers').delete().eq('id', cid)
@@ -194,21 +194,21 @@ export default function App() {
 
   // ── 새 손님 등록 ──
   const doAddCustomer = async (name, phone) => {
-    if (\!name) { showToast('이름을 입력해주세요'); return }
+    if (!name) { showToast('이름을 입력해주세요'); return }
     if (D.customers.some(c => c.name === name)) { showToast('같은 이름의 손님이 이미 있어요'); return }
     const nc = { id: uid(), name, phone, stamps: 0, visits: 0, couponsUsed: 0, createdAt: new Date().toISOString(), lastVisit: null }
     updateD(d => { d.customers.push(nc); return d })
     await sb.from('customers').insert({ id: nc.id, name, phone, stamps: 0, visits: 0, coupons_used: 0, created_at: nc.createdAt })
     setShowNew(false)
     setSelectedCid(nc.id)
-    showToast(`${name} 손님 등록 완료\!`)
+    showToast(`${name} 손님 등록 완료!`)
   }
 
   // ── 설정 저장 ──
   const doSaveSetting = async (key, v1, v2) => {
     if (key === 'password') {
-      if (\!/^\d{4}$/.test(v1)) { showToast('4자리 숫자를 입력하세요'); return }
-      if (v1 \!== v2)            { showToast('비밀번호가 일치하지 않아요'); return }
+      if (!/^\d{4}$/.test(v1)) { showToast('4자리 숫자를 입력하세요'); return }
+      if (v1 !== v2)            { showToast('비밀번호가 일치하지 않아요'); return }
     } else if (key === 'stampsRequired') {
       const n = parseInt(v1)
       if (isNaN(n) || n < 1 || n > 20) { showToast('1~20 사이 숫자를 입력하세요'); return }
@@ -216,7 +216,7 @@ export default function App() {
       await sb.from('settings').upsert({ key, value: String(n) })
       setEditKey(null); showToast('설정이 저장되었어요 ✅'); return
     } else {
-      if (\!v1) { showToast('값을 입력하세요'); return }
+      if (!v1) { showToast('값을 입력하세요'); return }
     }
     updateD(d => { d.settings[key] = v1; return d })
     await sb.from('settings').upsert({ key, value: v1 })

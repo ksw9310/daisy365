@@ -6,15 +6,15 @@ export default function CustomersTab({ D, onSelectCustomer }) {
 
   const filtered = D.customers
     .filter(c => {
-      if (\!query) return true
+      if (!query) return true
       const q = query.toLowerCase().replace(/-/g, '')
       return c.name.toLowerCase().includes(q) ||
         (c.phone && c.phone.replace(/-/g, '').includes(q))
     })
     .sort((a, b) => {
-      if (\!a.lastVisit && \!b.lastVisit) return a.name.localeCompare(b.name, 'ko')
-      if (\!a.lastVisit) return 1
-      if (\!b.lastVisit) return -1
+      if (!a.lastVisit && !b.lastVisit) return a.name.localeCompare(b.name, 'ko')
+      if (!a.lastVisit) return 1
+      if (!b.lastVisit) return -1
       return new Date(b.lastVisit) - new Date(a.lastVisit)
     })
 

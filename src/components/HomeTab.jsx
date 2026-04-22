@@ -67,7 +67,7 @@ export default function HomeTab({ D, onStamp, onNewCustomer }) {
         {recent.length === 0 ? (
           <div className="empty-state">
             <div className="es-icon">☕</div>
-            <p>아직 도장 내역이 없어요<br />첫 손님을 등록해보세요\!</p>
+            <p>아직 도장 내역이 없어요<br />첫 손님을 등록해보세요!</p>
           </div>
         ) : recent.map(a => {
           const c = D.customers.find(x => x.id === a.cid) || {}

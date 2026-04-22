@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#6B4226">
 <title>멤버십 등록</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
@@ -154,41 +155,74 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// URL 파라미터 읽기
-var params = new URLSearchParams(location.search);
-var cafeName  = params.get('cafe')  || '카페 멤버십';
-var ownerPhone = params.get('phone') || '';
+var SUPABASE_URL = 'https://vaepdtquinftazrcfsdi.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_ImT7BXe37H-_GqPHDZscDg__JM2JBpU';
+var sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var params    = new URLSearchParams(location.search);
+var cafeName  = params.get('cafe') || '카페 멤버십';
 var stampsReq = parseInt(params.get('req') || '12');
 
-// 카페 이름 표시
 document.getElementById('cafeNameEl').textContent = cafeName + ' 멤버십';
 document.title = cafeName + ' 멤버십 등록';
 
-// 완료 화면 도장 미리보기 생성
 function buildStampPreview() {
-  var el = document.getElementById('stampPreview');
-  var show = Math.min(stampsReq, 10); // 최대 10개 표시
+  var el   = document.getElementById('stampPreview');
+  var show = Math.min(stampsReq, 10);
   var html = '';
   for (var i = 0; i < show; i++) {
-    html += '<div class="stamp-dot-preview ' + (i === 0 ? 'first' : '') + '">' +
-      (i === 0 ? '☕' : '') + '</div>';
+    html += '<div class="stamp-dot-preview ' + (i === 0 ? 'first' : '') + '">' + (i === 0 ? '☕' : '') + '</div>';
   }
   if (stampsReq > 10) html += '<span style="font-size:13px;color:#999;align-self:center">... ' + stampsReq + '개</span>';
   el.innerHTML = html;
 }
 buildStampPreview();
 
-function submitReg() {
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+async function submitReg() {
   var name  = document.getElementById('regName').value.trim();
   var phone = document.getElementById('regPhone').value.trim();
 
-  if (!name) { showToast('이름을 입력해주세요'); return; }
-  if (!/^\d{4}$/.test(phone)) { showToast('번호 뒷 4자리를 입력해주세요'); return; }
+  if (!name)                       { showToast('이름을 입력해주세요'); return; }
+  if (!/^\d{4}$/.test(phone))     { showToast('번호 뒷 4자리를 입력해주세요'); return; }
 
-  // 완료 화면 전환
-  document.getElementById('doneNameEl').textContent = name;
-  document.getElementById('formView').style.display = 'none';
-  document.getElementById('doneView').style.display = 'block';
+  var btn = document.querySelector('.btn-primary');
+  btn.disabled = true;
+  btn.textContent = '등록 중...';
+
+  try {
+    // 같은 이름 중복 체크
+    var existing = await sb.from('customers').select('id').eq('name', name).maybeSingle();
+    if (existing.data) {
+      showToast('이미 등록된 이름이에요');
+      btn.disabled = false;
+      btn.textContent = '등록하기 →';
+      return;
+    }
+
+    var newId = uid();
+    var res = await sb.from('customers').insert({
+      id: newId,
+      name: name,
+      phone: phone,
+      stamps: 0,
+      visits: 0,
+      coupons_used: 0,
+      created_at: new Date().toISOString()
+    });
+
+    if (res.error) throw res.error;
+
+    document.getElementById('doneNameEl').textContent = name;
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('doneView').style.display = 'block';
+  } catch (e) {
+    console.error(e);
+    showToast('오류: ' + (e.message || '등록 실패'));
+    btn.disabled = false;
+    btn.textContent = '등록하기 →';
+  }
 }
 
 var toastTmr;
